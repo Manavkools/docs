@@ -53,8 +53,8 @@
       "group": "Get Started",
       "pages": [
         "introduction",
-        "Best-Practices",
-        "quickstart",
+        "bestpractices",
+        "platformconcepts",
         "development"
       ]
     },
