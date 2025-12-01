@@ -1,0 +1,260 @@
+---
+title: "Best Practices for Tabbly Voice AI Agents"
+description: "Master the art of creating effective voice agents with proven strategies and expert tips to maximize performance and deliver exceptional conversational experiences."
+---
+
+## Crafting Effective Prompts
+
+Writing clear, well-structured prompts is crucial for your voice agent's success. Follow these guidelines to create agents that understand and respond accurately.
+
+### Core Prompting Principles
+
+**Be Clear and Specific**
+
+- Define exactly what your agent should accomplish
+- Use simple, direct language in your instructions
+- Avoid ambiguous terms or vague objectives
+- Start with a concise prompt and add details iteratively
+
+**Set Conversation Boundaries**
+
+- Specify the agent's role clearly (e.g., "You are a customer support representative")
+- Define what topics the agent should and shouldn't discuss
+- Set expectations for conversation length and depth
+- Example: "Keep responses under 2 sentences unless asked for more detail"
+
+**Provide Context**
+
+- Include relevant background about your business
+- Explain industry-specific terminology
+- Define your brand voice and tone
+- Share common customer scenarios
+
+### Prompt Structure Template
+
+```
+Role: You are a [specific role] for [company name]
+
+Objective: Your goal is to [clear objective]
+
+Constraints:
+- Keep responses concise and under [X] sentences
+- Always [required behavior]
+- Never [prohibited behavior]
+
+Key Information:
+[Relevant business details, policies, or data]
+
+Conversation Flow:
+1. [Opening approach]
+2. [Main interaction guidelines]
+3. [Closing procedure]
+```
+
+---
+
+## Critical Voice-Specific Considerations
+
+### Numbers and Formatting
+
+**Always Write Numbers as Words**
+
+- Wrong: "Your order number is 12345"
+- Correct: "Your order number is one two three four five"
+- Wrong: "The total is \$91.50"
+- Correct: "The total is ninety-one dollars and fifty cents"
+
+**Why this matters**: Text-to-speech engines pronounce written numbers more naturally when spelled out, preventing confusion like "ninety-one" being heard as "nine one" or vice versa.
+
+**Special Number Cases**:
+
+- Phone numbers: "nine one four, two three five, six seven eight nine"
+- Prices: "twenty-nine dollars and ninety-nine cents"
+- Dates: "March fifteenth, twenty twenty-five"
+- Times: "three thirty PM" or "fifteen hundred hours"
+- Percentages: "fifteen percent" not "15%"
+
+### Multi-Language and Script Considerations
+
+**For Hinglish (Hindi-English Mix)**
+
+- Write Hindi words in Devanagari script: "आपका नाम क्या है?"
+- Don't use romanized Hindi in prompts: Avoid "aapka naam kya hai"
+- Mix naturally: "Hello, आपकी मदद के लिए मैं यहाँ हूं"
+- Ensure your TTS voice supports Devanagari rendering
+
+**For Other Mixed Languages**
+
+- Arabic: Use Arabic script (العربية) not transliteration
+- Chinese: Use appropriate characters (中文) not pinyin
+- Korean: Use Hangul (한국어) not romanization
+- Japanese: Use proper mix of Hiragana, Katakana, Kanji
+
+**Script Consistency Rules**:
+
+- Keep each language in its native script throughout
+- Don't switch scripts mid-sentence for the same language
+- Test pronunciation with your chosen TTS voice
+- Provide pronunciation guides for brand names or unique terms
+
+### Pronunciation and Clarity
+
+**Spell Out Acronyms Intentionally**
+
+- If you want it pronounced as letters: "F A Q" or "U S A"
+- If it's a word: "FAQ" (pronounced "fak") or "NASA"
+- For clarity, add pronunciation hints: "FAQ (F-A-Q)" in your knowledge base
+
+**Technical Terms and Brand Names**
+
+- Add phonetic spellings for difficult words
+- Example: "Tabbly (TAB-lee)" in your training data
+- Create a pronunciation dictionary for industry jargon
+- Test how TTS handles technical vocabulary
+
+**Punctuation Affects Speech**
+
+- Commas create brief pauses
+- Periods create longer pauses
+- Question marks raise intonation at the end
+- Exclamation marks add emphasis (use sparingly)
+- Use ellipses (...) for thoughtful pauses
+
+---
+
+## Conversation Design Best Practices
+
+### Keep It Natural
+
+**Avoid Robotic Patterns**
+
+- "Let me connect you with our billing team"
+
+**Use Conversational Fillers Sparingly**
+
+- Occasional: "Hmm, let me check that for you"
+- Don't overuse: "Um," "uh," "like" in every response
+
+**Handle Interruptions Gracefully**
+
+- Program responses for when users cut in
+- Example: "Oh, sorry—go ahead" or "Yes, I'm listening"
+
+### Context and Memory
+
+**Reference Previous Statements**
+
+- "As you mentioned earlier about..."
+- "Based on what you told me..."
+- This shows the agent is truly listening
+
+**Maintain Conversation State**
+
+- Track what information has been collected
+- Don't ask for the same details twice
+- Build on previous answers logically
+
+### Error Handling and Fallbacks
+
+**When the Agent Doesn't Understand**
+
+- ✅ "I didn't quite catch that. Could you rephrase?"
+- ✅ "Just to clarify, are you asking about [interpretation]?"
+
+**Escalation Pathways**
+
+- Define clear triggers for human handoff
+- Example: "If user says 'speak to a person' more than once, transfer immediately"
+- Set frustration detection: "I can tell this is urgent. Let me connect you with someone who can help right away"
+
+## Prompt Testing and Refinement
+
+### Iterative Improvement Process
+
+**1. Start Simple**
+
+- Begin with a basic prompt covering core functionality
+- Test thoroughly in the playground
+- Identify gaps and confusion points
+
+**2. Add Complexity Gradually**
+
+- Layer in additional instructions one at a time
+- Test after each addition
+- Remove anything that doesn't improve performance
+
+**3. Test Edge Cases**
+
+- Unusual requests
+- Ambiguous phrasing
+- Multiple questions at once
+- Background noise scenarios
+- Various accents and speaking speeds
+
+**4. Monitor Real Conversations**
+
+- Review call transcripts regularly
+- Identify common misunderstandings
+- Update prompts based on actual user behavior
+- Track improvement metrics over time
+
+### Common Pitfall Avoidance
+
+**Don't Overload the Prompt**
+
+- Too many instructions confuse the agent
+- Prioritize the most important behaviors
+- Use knowledge base for detailed information
+
+**Avoid Contradictory Instructions**
+
+- "Be brief but comprehensive" creates confusion
+- Choose one priority: brevity OR detail
+- Make trade-offs explicit
+
+**Don't Assume Knowledge**
+
+- Explain context the agent can't infer
+- Provide definitions for industry terms
+- Include relevant background information
+
+---
+
+## Language-Specific Prompting Tips
+
+### English Variants
+
+**US English**
+
+- Use American spelling and terminology
+- "elevator" not "lift," "apartment" not "flat"
+- Date format: "March 15th, 2025"
+
+**UK English**
+
+- British spelling and phrasing
+- "lift" not "elevator," "mobile" not "cell phone"
+- Date format: "15th March 2025"
+
+**Indian English**
+
+- May include local terms: "lakh" (hundred thousand), "crore" (ten million)
+- Write these clearly: "two lakh" or "two hundred thousand"
+
+### Non-English Languages
+
+**Formality Levels**
+
+- Spanish: Choose between "tú" (informal) and "usted" (formal)
+- Japanese: Define keigo (politeness) level
+- German: Specify "du" vs "Sie"
+- Korean: Set appropriate honorific level
+
+**Regional Variations**
+
+- Spanish: Spain vs Latin America differences
+- Portuguese: Brazil vs Portugal variants
+- Arabic: MSA (Modern Standard) vs dialect
+- Chinese: Simplified vs Traditional characters
+
+## 
