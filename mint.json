@@ -56,8 +56,13 @@
         "bestpractices",
         "platformconcepts",
         "agenttemplatelibrary",
-        "leadqualification",
         "development"
+      ]
+    },
+    {
+      "group": "Templates",
+      "pages": [
+        "leadqualification"
       ]
     },
     {
