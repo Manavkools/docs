@@ -1,0 +1,205 @@
+---
+title: "How to Integrate with CRMs"
+description: "Connect Tabbly with your CRM to sync call data, contacts, and interactions"
+---
+
+## Overview
+
+Tabbly integrates seamlessly with popular CRM platforms, allowing you to automatically sync call data, update contact records, and trigger workflows based on call outcomes.
+
+## Supported CRM Platforms
+
+<CardGroup cols={3}>
+  <Card title="Salesforce" icon="cloud">
+    Full integration with Salesforce CRM
+  </Card>
+  
+  <Card title="HubSpot" icon="hubspot">
+    Native HubSpot integration
+  </Card>
+  
+  <Card title="Zoho CRM" icon="zoho">
+    Complete Zoho CRM sync
+  </Card>
+  
+  <Card title="Pipedrive" icon="pipedrive">
+    Pipedrive integration available
+  </Card>
+  
+  <Card title="Custom CRM" icon="code">
+    Connect any CRM via REST API
+  </Card>
+</CardGroup>
+
+## Integration Features
+
+### Automatic Data Sync
+- **Call Records**: Automatically create call records in your CRM
+- **Contact Updates**: Update contact information from conversations
+- **Lead Creation**: Create new leads from outbound calls
+- **Activity Logging**: Log all call activities to contact records
+
+### Two-Way Sync
+- **CRM to Tabbly**: Import contacts and data for outbound campaigns
+- **Tabbly to CRM**: Export call results and transcripts
+- **Real-Time Updates**: Sync data in real-time during calls
+- **Batch Sync**: Schedule bulk data synchronization
+
+### Custom Field Mapping
+- **Map Custom Fields**: Map Tabbly data to your CRM fields
+- **Data Transformation**: Transform data format during sync
+- **Conditional Logic**: Apply rules for data mapping
+- **Validation**: Ensure data quality before syncing
+
+## Setting Up CRM Integration
+
+### Step 1: Choose Your CRM
+Navigate to **Settings > Integrations** and select your CRM platform.
+
+### Step 2: Authenticate
+- Click "Connect" to authenticate with your CRM
+- Grant necessary permissions for data access
+- Verify connection status
+
+### Step 3: Configure Mapping
+- Map Tabbly fields to CRM fields
+- Set up custom field mappings
+- Configure sync rules and triggers
+
+### Step 4: Test Integration
+- Run a test call to verify data sync
+- Check CRM for created/updated records
+- Verify data accuracy
+
+### Step 5: Enable Auto-Sync
+- Enable automatic synchronization
+- Set sync frequency (real-time or scheduled)
+- Configure error handling
+
+## Integration Examples
+
+### Salesforce Integration
+
+```javascript
+// Example: Creating a Lead in Salesforce after call
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@example.com",
+  "phone": "+1234567890",
+  "company": "Acme Corp",
+  "leadSource": "Tabbly Voice Agent",
+  "status": "Qualified",
+  "callNotes": "Interested in product demo"
+}
+```
+
+### HubSpot Integration
+
+```javascript
+// Example: Updating Contact in HubSpot
+{
+  "email": "john@example.com",
+  "properties": {
+    "last_call_date": "2024-01-15",
+    "call_outcome": "Appointment Scheduled",
+    "call_duration": "5:32",
+    "call_transcript": "..."
+  }
+}
+```
+
+## Data Sync Options
+
+### Real-Time Sync
+- **Immediate Updates**: Data syncs immediately after call ends
+- **Best For**: Critical data that needs instant updates
+- **Considerations**: Higher API usage, requires stable connection
+
+### Scheduled Sync
+- **Batch Updates**: Sync data at scheduled intervals
+- **Best For**: Non-critical data, reducing API calls
+- **Options**: Hourly, daily, or custom schedule
+
+### Manual Sync
+- **On-Demand**: Trigger sync manually when needed
+- **Best For**: Testing, troubleshooting, or one-off updates
+- **Access**: Available in dashboard or via API
+
+## Custom Integrations
+
+### REST API Integration
+Connect any CRM or system using Tabbly's REST API:
+
+```bash
+POST https://api.tabbly.io/v1/calls/sync
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "crm_type": "custom",
+  "endpoint": "https://your-crm.com/api/webhook",
+  "mapping": {
+    "contact_name": "name",
+    "contact_email": "email",
+    "call_outcome": "status"
+  }
+}
+```
+
+### Webhook Integration
+Receive call data via webhooks:
+
+```javascript
+// Webhook payload example
+{
+  "event": "call.completed",
+  "call_id": "call_123",
+  "contact": {
+    "name": "John Doe",
+    "phone": "+1234567890"
+  },
+  "outcome": "appointment_scheduled",
+  "transcript": "...",
+  "recording_url": "https://..."
+}
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Connection Issues">
+    - Verify API credentials are correct
+    - Check CRM API rate limits
+    - Ensure network connectivity
+    - Review error logs in dashboard
+  </Accordion>
+  
+  <Accordion title="Data Not Syncing">
+    - Verify field mappings are correct
+    - Check CRM field permissions
+    - Review sync logs for errors
+    - Test with manual sync first
+  </Accordion>
+  
+  <Accordion title="Duplicate Records">
+    - Configure duplicate detection rules
+    - Use unique identifiers for matching
+    - Set up merge logic in CRM
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+- **Test First**: Always test integration with sample data
+- **Monitor Syncs**: Regularly check sync logs for errors
+- **Map Fields Carefully**: Ensure accurate field mapping
+- **Handle Errors**: Set up error notifications and retry logic
+- **Document Customizations**: Document any custom mappings or rules
+
+## Need Help?
+
+<Card title="Contact Integration Support" icon="life-ring" href="mailto:support@tabbly.io">
+  Our team can help you set up and troubleshoot CRM integrations
+</Card>
+

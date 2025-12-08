@@ -1,0 +1,318 @@
+---
+title: "Data Management"
+description: "Extract, structure, validate, and manage call data with Tabbly"
+---
+
+## Overview
+
+Effective data management is essential for leveraging insights from your voice AI interactions. Tabbly provides comprehensive tools for extracting, structuring, validating, and managing call data.
+
+## Extract Data Structure from Calls
+
+### Automatic Data Extraction
+
+Tabbly automatically extracts structured data from every call:
+
+**Call Metadata**
+- Call ID, timestamp, duration
+- Caller phone number
+- Agent used, outcome
+- Call type (inbound/outbound)
+
+**Conversation Data**
+- Full transcript
+- Key phrases and topics
+- Sentiment analysis
+- Intent classification
+
+**Business Data**
+- Information collected (names, emails, etc.)
+- Actions taken (appointments, orders, etc.)
+- Outcomes and results
+- Custom fields you define
+
+### Custom Data Extraction
+
+**Define Extraction Rules**
+- Specify what data to extract
+- Set extraction patterns
+- Configure validation rules
+- Map to your data structure
+
+**Example Extraction:**
+```json
+{
+  "appointment_date": "2024-01-15",
+  "appointment_time": "2:00 PM",
+  "customer_name": "John Doe",
+  "customer_phone": "+1234567890",
+  "service_type": "Consultation",
+  "notes": "Interested in premium package"
+}
+```
+
+## Defining Custom Data Fields
+
+### Field Types
+
+**Text Fields**
+- Names, addresses, notes
+- Free-form text input
+- Character limits configurable
+
+**Numeric Fields**
+- Phone numbers, IDs, quantities
+- Validation rules (format, range)
+- Automatic formatting
+
+**Date/Time Fields**
+- Appointment dates, deadlines
+- Automatic parsing and validation
+- Time zone handling
+
+**Boolean Fields**
+- Yes/No questions
+- Checkbox-style data
+- Binary outcomes
+
+**Selection Fields**
+- Dropdown options
+- Multiple choice
+- Predefined values
+
+### Creating Custom Fields
+
+**Step 1: Define Field**
+- Name and description
+- Field type
+- Validation rules
+
+**Step 2: Configure Extraction**
+- How to extract from conversation
+- Patterns to look for
+- Fallback options
+
+**Step 3: Map to System**
+- Map to CRM fields
+- Connect to database
+- Set up sync rules
+
+## Data Validation Rules
+
+### Validation Types
+
+**Format Validation**
+- Phone number format
+- Email address format
+- Date format
+- Number ranges
+
+**Required Fields**
+- Mark fields as mandatory
+- Enforce collection during call
+- Handle missing data
+
+**Business Rules**
+- Custom validation logic
+- Cross-field validation
+- Conditional requirements
+
+### Setting Up Validation
+
+**In Agent Configuration**
+- Define validation rules per field
+- Set error messages
+- Configure retry logic
+
+**Example Validation:**
+```
+Field: email
+Rule: Must match email format
+Error: "Please provide a valid email address"
+Retry: Ask again if invalid
+```
+
+## Data Formatting and Transformation
+
+### Formatting Options
+
+**Date Formatting**
+- Standardize date formats
+- Convert time zones
+- Handle multiple formats
+
+**Phone Number Formatting**
+- Standardize phone formats
+- Add country codes
+- Remove formatting for storage
+
+**Text Formatting**
+- Capitalization rules
+- Remove extra spaces
+- Normalize text
+
+### Transformation Rules
+
+**Data Cleaning**
+- Remove special characters
+- Normalize text case
+- Trim whitespace
+
+**Data Enrichment**
+- Add default values
+- Calculate derived fields
+- Merge with external data
+
+**Format Conversion**
+- Convert between formats
+- Transform data types
+- Apply business logic
+
+## Exporting Call Data
+
+### Export Formats
+
+**CSV Export**
+- Spreadsheet-compatible format
+- Easy to import into Excel/Google Sheets
+- Customizable columns
+
+**JSON Export**
+- Structured data format
+- Preserves nested data
+- API-friendly format
+
+**Excel Export**
+- Native Excel format (.xlsx)
+- Formatted and styled
+- Multiple sheets supported
+
+**PDF Export**
+- Formatted reports
+- Suitable for sharing
+- Includes charts and summaries
+
+### Export Options
+
+**Full Export**
+- All call data
+- Complete transcripts
+- All custom fields
+
+**Filtered Export**
+- Date range filters
+- Agent filters
+- Outcome filters
+- Custom criteria
+
+**Scheduled Exports**
+- Automatic daily/weekly exports
+- Email delivery
+- Cloud storage integration
+
+## Data Retention Policies
+
+### Retention Settings
+
+**Default Retention**
+- Standard retention period
+- Automatic deletion after period
+- Configurable per data type
+
+**Custom Retention**
+- Set different periods for different data
+- Transcripts vs. recordings
+- Metadata vs. full data
+
+**Compliance Retention**
+- HIPAA requirements
+- GDPR requirements
+- Industry-specific rules
+
+### Data Deletion
+
+**Automatic Deletion**
+- Scheduled deletion based on policy
+- Secure deletion methods
+- Audit trail of deletions
+
+**Manual Deletion**
+- Delete specific records
+- Bulk deletion options
+- Confirmation required
+
+**Export Before Deletion**
+- Download data before deletion
+- Archive to external storage
+- Maintain compliance records
+
+## GDPR-Compliant Data Handling
+
+### GDPR Requirements
+
+**Right to Access**
+- Export customer data on request
+- Provide data in readable format
+- Include all associated data
+
+**Right to Erasure**
+- Delete customer data on request
+- Remove from all systems
+- Confirm deletion
+
+**Data Minimization**
+- Collect only necessary data
+- Limit data retention
+- Regular data audits
+
+**Consent Management**
+- Track consent for data collection
+- Record consent timestamps
+- Manage consent withdrawals
+
+### Compliance Features
+
+**Data Processing Records**
+- Log all data processing activities
+- Maintain audit trails
+- Document data flows
+
+**Privacy by Design**
+- Built-in privacy controls
+- Default privacy settings
+- Minimal data collection
+
+**Data Protection**
+- Encryption at rest and in transit
+- Access controls
+- Regular security audits
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Define Structure Early">
+    Plan your data structure before deploying agents. It's easier to design upfront than to restructure later.
+  </Accordion>
+  
+  <Accordion title="Validate at Source">
+    Validate data as it's collected during calls. Catch errors early rather than during export.
+  </Accordion>
+  
+  <Accordion title="Regular Audits">
+    Regularly audit your data for quality, completeness, and compliance. Clean up issues proactively.
+  </Accordion>
+  
+  <Accordion title="Document Everything">
+    Document your data structure, validation rules, and retention policies. This helps with compliance and maintenance.
+  </Accordion>
+  
+  <Accordion title="Test Exports">
+    Regularly test your export processes to ensure data integrity and formatting are correct.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+- Learn about analytics: [Analytics & Reporting](/analytics/call-analytics)
+- Configure integrations: [CRM Integrations](/integrations/crm-integrations)
+

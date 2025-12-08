@@ -1,0 +1,347 @@
+---
+title: "Outbound Calls"
+description: "Make outbound calls, set up campaigns, and manage outbound calling operations"
+---
+
+## Overview
+
+Tabbly enables you to make outbound calls at scale, reaching customers proactively with personalized voice AI agents. This guide covers everything you need to know about outbound calling.
+
+## How to Make Outbound Calls
+
+### Making Individual Calls
+
+**Quick Call**
+1. Navigate to **Calls > Make Call**
+2. Enter phone number
+3. Select agent
+4. Click **Call Now**
+5. Monitor call in real-time
+
+### Making Calls via API
+
+```bash
+POST https://api.tabbly.io/v1/calls/outbound
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+
+{
+  "phone_number": "+1234567890",
+  "agent_id": "agent_123",
+  "contact_data": {
+    "name": "John Doe",
+    "email": "john@example.com"
+  }
+}
+```
+
+## Setting Up Outbound Campaigns
+
+### Campaign Creation
+
+**Step 1: Create Campaign**
+- Name your campaign
+- Select target agent
+- Define campaign goals
+- Set start/end dates
+
+**Step 2: Add Contacts**
+- Upload contact list
+- Import from CRM
+- Manual entry
+- Filter existing contacts
+
+**Step 3: Configure Settings**
+- Call timing rules
+- Retry logic
+- Compliance settings
+- Success criteria
+
+**Step 4: Launch Campaign**
+- Review settings
+- Start campaign
+- Monitor progress
+- Adjust as needed
+
+## Upload Contact Lists (CSV, Excel)
+
+### Supported Formats
+
+**CSV Files**
+- Comma-separated values
+- UTF-8 encoding
+- Headers in first row
+- Standard format
+
+**Excel Files**
+- .xlsx format
+- Multiple sheets supported
+- Formatted data accepted
+
+### Required Columns
+
+**Minimum Required**
+- Phone number (required)
+- Contact name (optional but recommended)
+
+**Optional Columns**
+- Email address
+- Company name
+- Custom fields
+- Variable data
+
+### Upload Process
+
+1. Navigate to **Campaigns > Upload Contacts**
+2. Select file
+3. Map columns to fields
+4. Preview data
+5. Validate phone numbers
+6. Import contacts
+
+### Data Validation
+
+**Phone Number Validation**
+- Format validation
+- Country code verification
+- Duplicate detection
+- Invalid number removal
+
+**Data Cleaning**
+- Remove duplicates
+- Standardize formats
+- Validate email addresses
+- Clean phone numbers
+
+## Call Scheduling and Timing
+
+### Scheduling Options
+
+**Immediate Calls**
+- Start calling immediately
+- No delay
+- Best for urgent campaigns
+
+**Scheduled Start**
+- Set specific start time
+- Date and time selection
+- Time zone aware
+
+**Recurring Campaigns**
+- Daily, weekly, monthly
+- Set recurrence pattern
+- Automatic execution
+
+### Time Zone Management
+
+**Automatic Detection**
+- Detect contact time zone
+- Adjust call times accordingly
+- Respect local business hours
+
+**Manual Configuration**
+- Set specific time zones
+- Override automatic detection
+- Custom time zone rules
+
+## Time Zone Management for Outbound Calls
+
+### Best Practices
+
+**Respect Business Hours**
+- Only call during business hours
+- Configure per time zone
+- Avoid early morning/late night
+
+**Optimal Calling Times**
+- Research shows best times vary
+- Test different times
+- Analyze response rates
+- Optimize based on data
+
+**Holiday Handling**
+- Skip holidays
+- Configure holiday calendar
+- Respect local holidays
+- Custom holiday lists
+
+## Call Pacing and Throttling
+
+### Pacing Controls
+
+**Calls Per Hour**
+- Set maximum calls per hour
+- Prevent overwhelming systems
+- Maintain quality
+
+**Calls Per Minute**
+- Fine-grained control
+- Smooth call distribution
+- Avoid spikes
+
+**Dynamic Pacing**
+- Adjust based on performance
+- Slow down if issues detected
+- Speed up if all going well
+
+### Throttling Benefits
+
+- Prevents system overload
+- Maintains call quality
+- Reduces costs
+- Improves success rates
+
+## Retry Logic for Failed Calls
+
+### Retry Configuration
+
+**Retry Attempts**
+- Set maximum retries
+- Configure retry intervals
+- Define retry conditions
+
+**Retry Conditions**
+- Busy signals
+- No answer
+- Voicemail
+- Network errors
+
+**Retry Intervals**
+- Immediate retry
+- Wait 1 hour
+- Wait 24 hours
+- Custom intervals
+
+### Smart Retry Logic
+
+- Learn from previous attempts
+- Adjust retry timing
+- Skip numbers that won't answer
+- Optimize retry strategy
+
+## Voicemail Detection and Handling
+
+### Voicemail Detection
+
+**Automatic Detection**
+- AI-powered detection
+- High accuracy
+- Real-time identification
+
+**Voicemail Responses**
+- Leave custom message
+- Hang up immediately
+- Schedule callback
+- Send follow-up SMS
+
+### Voicemail Messages
+
+**Custom Messages**
+- Personalized voicemails
+- Include contact information
+- Call-to-action
+- Professional tone
+
+**Message Length**
+- Keep it concise
+- 30-60 seconds ideal
+- Include key information
+- Clear next steps
+
+## Do Not Call (DNC) List Management
+
+### DNC Compliance
+
+**Automatic Scrubbing**
+- Check against DNC lists
+- Skip DNC numbers
+- Maintain compliance
+- Legal protection
+
+**DNC List Management**
+- Upload DNC lists
+- Maintain internal DNC
+- Respect opt-outs
+- Regular updates
+
+### Opt-Out Handling
+
+**During Calls**
+- Honor opt-out requests
+- Add to DNC immediately
+- Confirm opt-out
+- Document properly
+
+**Opt-Out Management**
+- Central DNC database
+- Sync across campaigns
+- Export DNC lists
+- Compliance reporting
+
+## Compliance with Calling Regulations (TCPA, GDPR)
+
+### TCPA Compliance (US)
+
+**Requirements**
+- Prior express consent
+- Identify caller
+- Provide opt-out mechanism
+- Maintain records
+
+**Tabbly Features**
+- Consent tracking
+- Caller ID configuration
+- Opt-out handling
+- Record keeping
+
+### GDPR Compliance (EU)
+
+**Requirements**
+- Consent for calls
+- Right to object
+- Data protection
+- Privacy by design
+
+**Tabbly Features**
+- Consent management
+- Data minimization
+- Privacy controls
+- Right to erasure
+
+### Best Practices
+
+- Always obtain consent
+- Honor opt-outs immediately
+- Maintain detailed records
+- Regular compliance audits
+- Stay updated on regulations
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Start Small">
+    Begin with small test campaigns. Learn what works before scaling up.
+  </Accordion>
+  
+  <Accordion title="Respect Time Zones">
+    Always respect local time zones and business hours. Calling at wrong times hurts results.
+  </Accordion>
+  
+  <Accordion title="Monitor Closely">
+    Watch campaigns closely, especially when starting. Adjust quickly based on results.
+  </Accordion>
+  
+  <Accordion title="Test Messages">
+    Test your agent's messages and responses. Ensure they sound natural and effective.
+  </Accordion>
+  
+  <Accordion title="Compliance First">
+    Always prioritize compliance. It's not optional and protects your business.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+- Learn about call batching: [Call Batching](/phone-calls/batching/call-batching)
+- Configure inbound calls: [Inbound Calls](/phone-calls/inbound/inbound-calls)
+

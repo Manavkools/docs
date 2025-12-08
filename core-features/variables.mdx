@@ -1,0 +1,234 @@
+---
+title: "Variables & Personalization"
+description: "Add dynamic variables to personalize conversations and use customer data"
+---
+
+## Overview
+
+Variables allow you to personalize conversations by dynamically inserting customer data, context, and real-time information into your agent's responses.
+
+## Add Variables to Conversations
+
+### What are Variables?
+
+Variables are placeholders that get replaced with actual values during conversations. They enable personalization and dynamic content insertion.
+
+### Variable Syntax
+
+Variables use double curly braces: `{{variable_name}}`
+
+**Example:**
+```
+Hello {{customer_name}}, thank you for calling {{company_name}}!
+```
+
+### Types of Variables
+
+**Customer Data Variables**
+- `{{customer_name}}` - Customer's name
+- `{{customer_email}}` - Email address
+- `{{customer_phone}}` - Phone number
+- `{{customer_company}}` - Company name
+
+**Context Variables**
+- `{{current_time}}` - Current time
+- `{{current_date}}` - Current date
+- `{{day_of_week}}` - Day of the week
+- `{{timezone}}` - Time zone
+
+**Call Variables**
+- `{{call_duration}}` - Length of current call
+- `{{call_id}}` - Unique call identifier
+- `{{agent_name}}` - Name of the agent
+
+**Custom Variables**
+- Define your own variables
+- Pull from CRM or database
+- Use in any conversation flow
+
+## Dynamic Variable Insertion
+
+### Where to Use Variables
+
+**Greetings**
+```
+Good {{time_of_day}}, {{customer_name}}! How can I help you today?
+```
+
+**Questions**
+```
+Hi {{customer_name}}, I see you're calling about {{product_name}}. Is that correct?
+```
+
+**Responses**
+```
+Great! I've scheduled your appointment for {{appointment_date}} at {{appointment_time}}.
+```
+
+**Confirmations**
+```
+Perfect, {{customer_name}}. I've sent a confirmation email to {{customer_email}}.
+```
+
+### Variable Processing
+
+**Real-Time Resolution**
+- Variables are resolved in real-time during the call
+- Values are pulled from connected data sources
+- Fallback values used if data unavailable
+
+**Data Sources**
+- CRM integrations (Salesforce, HubSpot, etc.)
+- Customer database
+- Call context and history
+- External APIs
+
+## Using Customer Data in Conversations
+
+### CRM Integration
+
+**Automatic Data Pull**
+- Customer data automatically pulled from CRM
+- Available immediately when call starts
+- Updates in real-time during conversation
+
+**Example Flow:**
+1. Caller's phone number identified
+2. System looks up customer in CRM
+3. Customer data loaded into variables
+4. Agent uses data in conversation
+
+### Data Mapping
+
+**Field Mapping**
+- Map CRM fields to Tabbly variables
+- Custom field names supported
+- Transform data format if needed
+
+**Example Mapping:**
+```
+CRM Field: "First Name" → Tabbly Variable: {{customer_name}}
+CRM Field: "Email Address" → Tabbly Variable: {{customer_email}}
+CRM Field: "Last Order Date" → Tabbly Variable: {{last_order_date}}
+```
+
+### Dynamic Personalization
+
+**Personalized Greetings**
+```
+Hello {{customer_name}}, I see you're a {{customer_tier}} member. How can I help you today?
+```
+
+**Context-Aware Responses**
+```
+Based on your last purchase of {{last_product}}, I think you might be interested in {{recommended_product}}.
+```
+
+**Historical Context**
+```
+I see you called us {{days_since_last_call}} days ago about {{previous_issue}}. Has that been resolved?
+```
+
+## Advanced Variable Usage
+
+### Conditional Variables
+
+**If-Then Logic**
+```
+{{#if customer_tier == "Premium"}}
+Thank you for being a Premium member!
+{{else}}
+Would you like to learn about our Premium membership?
+{{/if}}
+```
+
+### Calculated Variables
+
+**Date Calculations**
+```
+Your next appointment is in {{days_until_appointment}} days.
+```
+
+**Mathematical Operations**
+```
+Your order total is ${{order_subtotal + tax - discount}}.
+```
+
+### Nested Variables
+
+**Complex Structures**
+```
+{{customer.address.street}}, {{customer.address.city}}, {{customer.address.state}}
+```
+
+## Variable Best Practices
+
+<AccordionGroup>
+  <Accordion title="Always Have Fallbacks">
+    Provide fallback values for variables that might be missing. Example: `{{customer_name|"there"}}`
+  </Accordion>
+  
+  <Accordion title="Test Variables">
+    Test all variables with sample data to ensure they work correctly. Verify formatting and accuracy.
+  </Accordion>
+  
+  <Accordion title="Keep It Natural">
+    Use variables naturally in conversation. Don't over-personalize or make it feel forced.
+  </Accordion>
+  
+  <Accordion title="Privacy Considerations">
+    Be mindful of privacy. Only use customer data that's appropriate and consented to.
+  </Accordion>
+  
+  <Accordion title="Performance">
+    Ensure variable resolution is fast. Slow data lookups can cause delays in conversation.
+  </Accordion>
+</AccordionGroup>
+
+## Common Variable Examples
+
+### Appointment Scheduling
+```
+I've scheduled your appointment for {{appointment_date}} at {{appointment_time}} with {{provider_name}} at {{location_address}}.
+```
+
+### Order Status
+```
+Hi {{customer_name}}, your order #{{order_number}} for {{product_name}} is currently {{order_status}} and will be delivered by {{delivery_date}}.
+```
+
+### Support Tickets
+```
+I see you have an open ticket #{{ticket_number}} about {{ticket_subject}}. Our team is working on it and will update you by {{estimated_resolution_date}}.
+```
+
+### Billing
+```
+Your account balance is ${{account_balance}}. Your next payment of ${{next_payment_amount}} is due on {{payment_due_date}}.
+```
+
+## Troubleshooting
+
+**Variables Not Resolving**
+- Check variable name spelling
+- Verify data source connection
+- Test with sample data
+- Review error logs
+
+**Missing Data**
+- Ensure CRM integration is active
+- Check data mapping configuration
+- Verify customer record exists
+- Set up fallback values
+
+**Formatting Issues**
+- Check date/time format settings
+- Verify number formatting
+- Test with different data types
+- Review variable syntax
+
+## Next Steps
+
+- Learn about data management: [Data Management](/core-features/data-management)
+- Configure agent settings: [Agent Configuration](/core-features/agent-configuration)
+
