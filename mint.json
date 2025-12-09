@@ -22,8 +22,8 @@
     }
   ],
   "topbarCtaButton": {
-    "name": "Dashboard",
-    "url": "https://tabbly.io/dashboard"
+    "name": "Create an Account",
+    "url": "https://tabbly.io/signup"
   },
   "tabs": [
     {
