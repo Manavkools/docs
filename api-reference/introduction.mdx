@@ -1,28 +1,67 @@
 ---
-title: "Introductions"
-description: "Example section for showcasing API endpoints"
+title: "API Reference"
+description: "Complete API reference for Tabbly Voice AI platform"
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete this section by removing the api-reference folder.
-</Note>
+## Overview
 
-## Welcome
+The Tabbly API allows you to programmatically interact with the Tabbly platform to trigger calls, manage agents, retrieve call logs, and more. All API endpoints require authentication using your organization API key.
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+## Base URL
 
-<Card title="Plant Store Endpoints" icon="leaf" href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json">
-  View the OpenAPI specification file
-</Card>
+```
+https://www.tabbly.io/dashboard/agents/endpoints
+```
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+All API requests require your organization API key to be included in the request body. Include the `api_key` parameter in your request:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+{
+  "api_key": "your_organization_api_key_here"
+}
 ```
+
+## Rate Limits
+
+API rate limits apply to prevent abuse. Contact support if you need higher limits.
+
+## Phone Number Format
+
+All phone numbers must be in **E.164 format**: `+[country code][number]`
+
+**Examples:**
+- US: `+14156801215`
+- India: `+917359043943`
+
+## Response Format
+
+All API responses are returned in JSON format. Success responses include a `success` field set to `true`, while error responses include error details.
+
+## Error Codes
+
+| Status Code | Description |
+|-------------|-------------|
+| 200 | Success |
+| 400 | Missing required fields |
+| 402 | Insufficient wallet balance |
+| 404 | Resource not found (Organization/Agent/Phone number) |
+| 500 | Server error |
+
+## Getting Started
+
+<CardGroup cols={2}>
+  <Card title="Trigger Calls" icon="phone" href="/api-reference/trigger-call">
+    Make outbound calls programmatically
+  </Card>
+  <Card title="Get Call Logs" icon="list" href="/api-reference/get-call-logs">
+    Retrieve call history and logs
+  </Card>
+  <Card title="Manage Agents" icon="robot" href="/api-reference/create-agent">
+    Create and manage voice agents
+  </Card>
+  <Card title="Get Voices" icon="microphone" href="/api-reference/get-voices">
+    List available voices
+  </Card>
+</CardGroup>

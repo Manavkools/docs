@@ -1,0 +1,157 @@
+---
+title: "Create Agent"
+description: "Create a new voice AI agent programmatically"
+---
+
+<ApiMethod method="post" path="/create-agent">
+
+Create a new voice AI agent with specified configuration. The agent can be customized with prompts, voice settings, and conversation flows.
+
+</ApiMethod>
+
+## Request
+
+<ParamField body="organization_id" type="integer" required>
+  Your organization ID
+</ParamField>
+
+<ParamField body="api_key" type="string" required>
+  Your organization API key
+</ParamField>
+
+<ParamField body="agent_name" type="string" required>
+  Name for the agent
+</ParamField>
+
+<ParamField body="agent_description" type="string">
+  Description of the agent's purpose
+</ParamField>
+
+<ParamField body="base_prompt" type="string" required>
+  Base prompt/instructions for the agent's behavior
+</ParamField>
+
+<ParamField body="voice_id" type="integer" required>
+  ID of the voice to use (from Get Voices endpoint)
+</ParamField>
+
+<ParamField body="language" type="string" default="en">
+  Primary language code (e.g., "en", "es", "hi")
+</ParamField>
+
+<ParamField body="greeting" type="string">
+  Custom greeting message
+</ParamField>
+
+<ParamField body="conversation_goal" type="string">
+  Primary goal of the agent (e.g., "schedule_appointment", "qualify_lead")
+</ParamField>
+
+## Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST 'https://www.tabbly.io/dashboard/agents/endpoints/create-agent' \
+-H 'Content-Type: application/json' \
+-d '{
+    "organization_id": 244,
+    "api_key": "your_api_key",
+    "agent_name": "Customer Support Agent",
+    "agent_description": "Handles customer support inquiries",
+    "base_prompt": "You are a helpful customer support agent...",
+    "voice_id": 5,
+    "language": "en",
+    "greeting": "Hello! How can I help you today?",
+    "conversation_goal": "customer_support"
+}'
+```
+
+```python Python
+import requests
+
+data = {
+    'organization_id': 244,
+    'api_key': 'your_api_key',
+    'agent_name': 'Customer Support Agent',
+    'agent_description': 'Handles customer support inquiries',
+    'base_prompt': 'You are a helpful customer support agent...',
+    'voice_id': 5,
+    'language': 'en',
+    'greeting': 'Hello! How can I help you today?',
+    'conversation_goal': 'customer_support'
+}
+
+response = requests.post(
+    'https://www.tabbly.io/dashboard/agents/endpoints/create-agent',
+    json=data
+)
+
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const data = {
+    organization_id: 244,
+    api_key: 'your_api_key',
+    agent_name: 'Customer Support Agent',
+    agent_description: 'Handles customer support inquiries',
+    base_prompt: 'You are a helpful customer support agent...',
+    voice_id: 5,
+    language: 'en',
+    greeting: 'Hello! How can I help you today?',
+    conversation_goal: 'customer_support'
+};
+
+axios.post('https://www.tabbly.io/dashboard/agents/endpoints/create-agent', data)
+    .then(response => console.log(response.data))
+    .catch(error => console.error(error));
+```
+
+</CodeGroup>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  Indicates if the agent was successfully created
+</ResponseField>
+
+<ResponseField name="agent_id" type="integer">
+  ID of the newly created agent
+</ResponseField>
+
+<ResponseField name="agent_name" type="string">
+  Name of the created agent
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Status of the agent (active, draft)
+</ResponseField>
+
+### Success Response (200 OK)
+
+```json
+{
+    "success": true,
+    "agent_id": 45,
+    "agent_name": "Customer Support Agent",
+    "status": "draft"
+}
+```
+
+## Error Responses
+
+<ResponseField name="400" type="object">
+  Missing required fields or invalid parameters
+</ResponseField>
+
+<ResponseField name="404" type="object">
+  Organization not found or invalid voice_id
+</ResponseField>
+
+<ResponseField name="500" type="object">
+  Server error
+</ResponseField>
+

@@ -193,17 +193,15 @@
       ]
     },
     {
-      "group": "API Documentation",
+      "group": "API Reference",
       "pages": [
-        "api-reference/introduction"
-      ]
-    },
-    {
-      "group": "Endpoint Examples",
-      "pages": [
-        "api-reference/endpoint/get",
-        "api-reference/endpoint/create",
-        "api-reference/endpoint/delete"
+        "api-reference/introduction",
+        "api-reference/trigger-call",
+        "api-reference/get-call-logs",
+        "api-reference/create-agent",
+        "api-reference/get-agents",
+        "api-reference/get-voices",
+        "api-reference/create-campaign"
       ]
     }
   ],

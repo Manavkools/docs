@@ -1,0 +1,190 @@
+---
+title: "Get Call Logs"
+description: "Retrieve call logs and history for your organization"
+---
+
+<ApiMethod method="get" path="/get-call-logs">
+
+Retrieve call logs and history for your organization. This endpoint allows you to fetch call records, transcripts, and metadata for analysis and reporting.
+
+</ApiMethod>
+
+## Request
+
+<ParamField query="organization_id" type="integer" required>
+  Your organization ID
+</ParamField>
+
+<ParamField query="api_key" type="string" required>
+  Your organization API key
+</ParamField>
+
+<ParamField query="start_date" type="string">
+  Start date for filtering calls (ISO 8601 format: YYYY-MM-DD)
+</ParamField>
+
+<ParamField query="end_date" type="string">
+  End date for filtering calls (ISO 8601 format: YYYY-MM-DD)
+</ParamField>
+
+<ParamField query="agent_id" type="integer">
+  Filter calls by specific agent ID
+</ParamField>
+
+<ParamField query="limit" type="integer" default="100">
+  Maximum number of records to return (default: 100, max: 1000)
+</ParamField>
+
+<ParamField query="offset" type="integer" default="0">
+  Number of records to skip for pagination
+</ParamField>
+
+## Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X GET 'https://www.tabbly.io/dashboard/agents/endpoints/get-call-logs?organization_id=244&api_key=your_api_key&start_date=2025-01-01&end_date=2025-01-31&limit=50' \
+-H 'Content-Type: application/json'
+```
+
+```python Python
+import requests
+
+params = {
+    'organization_id': 244,
+    'api_key': 'your_api_key',
+    'start_date': '2025-01-01',
+    'end_date': '2025-01-31',
+    'limit': 50
+}
+
+response = requests.get(
+    'https://www.tabbly.io/dashboard/agents/endpoints/get-call-logs',
+    params=params
+)
+
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const params = {
+    organization_id: 244,
+    api_key: 'your_api_key',
+    start_date: '2025-01-01',
+    end_date: '2025-01-31',
+    limit: 50
+};
+
+axios.get('https://www.tabbly.io/dashboard/agents/endpoints/get-call-logs', { params })
+    .then(response => console.log(response.data))
+    .catch(error => console.error(error));
+```
+
+</CodeGroup>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="calls" type="array">
+  Array of call log objects
+</ResponseField>
+
+<ResponseField name="total" type="integer">
+  Total number of calls matching the filter criteria
+</ResponseField>
+
+<ResponseField name="limit" type="integer">
+  Number of records returned in this response
+</ResponseField>
+
+<ResponseField name="offset" type="integer">
+  Offset used for pagination
+</ResponseField>
+
+### Call Log Object
+
+<ResponseField name="call_id" type="string">
+  Unique identifier for the call
+</ResponseField>
+
+<ResponseField name="agent_id" type="integer">
+  ID of the agent used for the call
+</ResponseField>
+
+<ResponseField name="called_to" type="string">
+  Destination phone number
+</ResponseField>
+
+<ResponseField name="call_from" type="string">
+  Source phone number
+</ResponseField>
+
+<ResponseField name="call_duration" type="integer">
+  Call duration in seconds
+</ResponseField>
+
+<ResponseField name="call_status" type="string">
+  Status of the call (completed, failed, busy, no_answer)
+</ResponseField>
+
+<ResponseField name="call_outcome" type="string">
+  Outcome of the call (appointment_scheduled, lead_qualified, etc.)
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  Timestamp when the call was made (ISO 8601 format)
+</ResponseField>
+
+<ResponseField name="transcript" type="string">
+  Full transcript of the call conversation
+</ResponseField>
+
+<ResponseField name="recording_url" type="string">
+  URL to access the call recording (if available)
+</ResponseField>
+
+### Success Response (200 OK)
+
+```json
+{
+    "success": true,
+    "calls": [
+        {
+            "call_id": "call_123456",
+            "agent_id": 33,
+            "called_to": "+917359056097",
+            "call_from": "+14156801215",
+            "call_duration": 245,
+            "call_status": "completed",
+            "call_outcome": "appointment_scheduled",
+            "timestamp": "2025-01-15T10:30:00Z",
+            "transcript": "Agent: Hello...",
+            "recording_url": "https://..."
+        }
+    ],
+    "total": 150,
+    "limit": 50,
+    "offset": 0
+}
+```
+
+## Error Responses
+
+<ResponseField name="400" type="object">
+  Missing required fields or invalid parameters
+</ResponseField>
+
+<ResponseField name="404" type="object">
+  Organization not found
+</ResponseField>
+
+<ResponseField name="500" type="object">
+  Server error
+</ResponseField>
+

@@ -1,0 +1,154 @@
+---
+title: "Get Voices"
+description: "Retrieve a list of available voices for your agents"
+---
+
+<ApiMethod method="get" path="/get-voices">
+
+Retrieve a list of all available voices that can be used when creating or configuring agents. Includes voice details such as language, gender, and style.
+
+</ApiMethod>
+
+## Request
+
+<ParamField query="organization_id" type="integer" required>
+  Your organization ID
+</ParamField>
+
+<ParamField query="api_key" type="string" required>
+  Your organization API key
+</ParamField>
+
+<ParamField query="language" type="string">
+  Filter voices by language code (e.g., "en", "es", "hi")
+</ParamField>
+
+<ParamField query="gender" type="string">
+  Filter voices by gender (male, female)
+</ParamField>
+
+## Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X GET 'https://www.tabbly.io/dashboard/agents/endpoints/get-voices?organization_id=244&api_key=your_api_key&language=en' \
+-H 'Content-Type: application/json'
+```
+
+```python Python
+import requests
+
+params = {
+    'organization_id': 244,
+    'api_key': 'your_api_key',
+    'language': 'en'
+}
+
+response = requests.get(
+    'https://www.tabbly.io/dashboard/agents/endpoints/get-voices',
+    params=params
+)
+
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const params = {
+    organization_id: 244,
+    api_key: 'your_api_key',
+    language: 'en'
+};
+
+axios.get('https://www.tabbly.io/dashboard/agents/endpoints/get-voices', { params })
+    .then(response => console.log(response.data))
+    .catch(error => console.error(error));
+```
+
+</CodeGroup>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="voices" type="array">
+  Array of voice objects
+</ResponseField>
+
+<ResponseField name="total" type="integer">
+  Total number of voices available
+</ResponseField>
+
+### Voice Object
+
+<ResponseField name="voice_id" type="integer">
+  Unique identifier for the voice
+</ResponseField>
+
+<ResponseField name="voice_name" type="string">
+  Name of the voice
+</ResponseField>
+
+<ResponseField name="language" type="string">
+  Language code supported by the voice
+</ResponseField>
+
+<ResponseField name="language_name" type="string">
+  Full name of the language
+</ResponseField>
+
+<ResponseField name="gender" type="string">
+  Gender of the voice (male, female)
+</ResponseField>
+
+<ResponseField name="accent" type="string">
+  Regional accent or variant
+</ResponseField>
+
+<ResponseField name="style" type="string">
+  Voice style (professional, friendly, authoritative)
+</ResponseField>
+
+<ResponseField name="preview_url" type="string">
+  URL to preview the voice
+</ResponseField>
+
+### Success Response (200 OK)
+
+```json
+{
+    "success": true,
+    "voices": [
+        {
+            "voice_id": 5,
+            "voice_name": "Sarah - Professional",
+            "language": "en",
+            "language_name": "English",
+            "gender": "female",
+            "accent": "US",
+            "style": "professional",
+            "preview_url": "https://..."
+        }
+    ],
+    "total": 150
+}
+```
+
+## Error Responses
+
+<ResponseField name="400" type="object">
+  Missing required fields
+</ResponseField>
+
+<ResponseField name="404" type="object">
+  Organization not found
+</ResponseField>
+
+<ResponseField name="500" type="object">
+  Server error
+</ResponseField>
+

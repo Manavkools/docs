@@ -1,0 +1,224 @@
+---
+title: "Create Campaign"
+description: "Create a new outbound calling campaign"
+---
+
+<ApiMethod method="post" path="/create-campaign">
+
+Create a new outbound calling campaign. Campaigns allow you to organize and manage bulk calling operations with scheduling, pacing, and retry logic.
+
+</ApiMethod>
+
+## Request
+
+<ParamField body="organization_id" type="integer" required>
+  Your organization ID
+</ParamField>
+
+<ParamField body="api_key" type="string" required>
+  Your organization API key
+</ParamField>
+
+<ParamField body="campaign_name" type="string" required>
+  Name for the campaign
+</ParamField>
+
+<ParamField body="agent_id" type="integer" required>
+  ID of the agent to use for the campaign
+</ParamField>
+
+<ParamField body="call_from" type="string" required>
+  Source phone number in E.164 format
+</ParamField>
+
+<ParamField body="contacts" type="array" required>
+  Array of contact objects with phone numbers and optional custom data
+</ParamField>
+
+<ParamField body="start_time" type="string">
+  Scheduled start time for the campaign (ISO 8601 format). If not provided, starts immediately.
+</ParamField>
+
+<ParamField body="calls_per_hour" type="integer" default="60">
+  Maximum number of calls to make per hour
+</ParamField>
+
+<ParamField body="retry_attempts" type="integer" default="2">
+  Number of retry attempts for failed calls
+</ParamField>
+
+<ParamField body="retry_delay" type="integer" default="3600">
+  Delay between retry attempts in seconds
+</ParamField>
+
+## Contact Object
+
+<ResponseField name="phone_number" type="string" required>
+  Destination phone number in E.164 format
+</ResponseField>
+
+<ResponseField name="custom_first_line" type="string">
+  Custom first line for this specific contact
+</ResponseField>
+
+<ResponseField name="custom_instruction" type="string">
+  Custom instructions for this specific contact
+</ResponseField>
+
+<ResponseField name="custom_identifiers" type="string">
+  Custom identifier for mapping back to your system
+</ResponseField>
+
+## Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST 'https://www.tabbly.io/dashboard/agents/endpoints/create-campaign' \
+-H 'Content-Type: application/json' \
+-d '{
+    "organization_id": 244,
+    "api_key": "your_api_key",
+    "campaign_name": "January Follow-up Campaign",
+    "agent_id": 33,
+    "call_from": "+14156801215",
+    "contacts": [
+        {
+            "phone_number": "+917359056097",
+            "custom_first_line": "Hello, I am calling from Company XYZ",
+            "custom_instruction": "John'\''s Order ID is 12345",
+            "custom_identifiers": "user_12345"
+        },
+        {
+            "phone_number": "+917359056098",
+            "custom_first_line": "Hello, I am calling from Company XYZ",
+            "custom_instruction": "Jane'\''s Order ID is 12346",
+            "custom_identifiers": "user_12346"
+        }
+    ],
+    "calls_per_hour": 60,
+    "retry_attempts": 2
+}'
+```
+
+```python Python
+import requests
+
+data = {
+    'organization_id': 244,
+    'api_key': 'your_api_key',
+    'campaign_name': 'January Follow-up Campaign',
+    'agent_id': 33,
+    'call_from': '+14156801215',
+    'contacts': [
+        {
+            'phone_number': '+917359056097',
+            'custom_first_line': 'Hello, I am calling from Company XYZ',
+            'custom_instruction': 'John\'s Order ID is 12345',
+            'custom_identifiers': 'user_12345'
+        },
+        {
+            'phone_number': '+917359056098',
+            'custom_first_line': 'Hello, I am calling from Company XYZ',
+            'custom_instruction': 'Jane\'s Order ID is 12346',
+            'custom_identifiers': 'user_12346'
+        }
+    ],
+    'calls_per_hour': 60,
+    'retry_attempts': 2
+}
+
+response = requests.post(
+    'https://www.tabbly.io/dashboard/agents/endpoints/create-campaign',
+    json=data
+)
+
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const data = {
+    organization_id: 244,
+    api_key: 'your_api_key',
+    campaign_name: 'January Follow-up Campaign',
+    agent_id: 33,
+    call_from: '+14156801215',
+    contacts: [
+        {
+            phone_number: '+917359056097',
+            custom_first_line: 'Hello, I am calling from Company XYZ',
+            custom_instruction: 'John\'s Order ID is 12345',
+            custom_identifiers: 'user_12345'
+        },
+        {
+            phone_number: '+917359056098',
+            custom_first_line: 'Hello, I am calling from Company XYZ',
+            custom_instruction: 'Jane\'s Order ID is 12346',
+            custom_identifiers: 'user_12346'
+        }
+    ],
+    calls_per_hour: 60,
+    retry_attempts: 2
+};
+
+axios.post('https://www.tabbly.io/dashboard/agents/endpoints/create-campaign', data)
+    .then(response => console.log(response.data))
+    .catch(error => console.error(error));
+```
+
+</CodeGroup>
+
+## Response
+
+<ResponseField name="success" type="boolean">
+  Indicates if the campaign was successfully created
+</ResponseField>
+
+<ResponseField name="campaign_id" type="integer">
+  ID of the newly created campaign
+</ResponseField>
+
+<ResponseField name="campaign_name" type="string">
+  Name of the created campaign
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Status of the campaign (scheduled, running, paused, completed)
+</ResponseField>
+
+<ResponseField name="total_contacts" type="integer">
+  Total number of contacts in the campaign
+</ResponseField>
+
+### Success Response (200 OK)
+
+```json
+{
+    "success": true,
+    "campaign_id": 12,
+    "campaign_name": "January Follow-up Campaign",
+    "status": "scheduled",
+    "total_contacts": 2
+}
+```
+
+## Error Responses
+
+<ResponseField name="400" type="object">
+  Missing required fields or invalid parameters
+</ResponseField>
+
+<ResponseField name="402" type="object">
+  Insufficient wallet balance
+</ResponseField>
+
+<ResponseField name="404" type="object">
+  Organization/Agent not found or invalid call_from number
+</ResponseField>
+
+<ResponseField name="500" type="object">
+  Server error
+</ResponseField>
+
