@@ -109,65 +109,15 @@
     {
       "group": "Agent Templates",
       "pages": [
-        "agent-templates/templates-overview"
-      ]
-    },
-    {
-      "group": "Featured Templates",
-      "pages": [
+        "agent-templates/templates-overview",
+        "leadqualification",
+        "customersupportagent",
         "agent-templates/featured/appointment-scheduling",
         "agent-templates/featured/cart-abandonment",
         "agent-templates/featured/recruitment-screening",
-        "agent-templates/featured/onboarding"
-      ]
-    },
-    {
-      "group": "Sales & Marketing Templates",
-      "pages": [
+        "agent-templates/featured/onboarding",
         "agent-templates/sales-marketing/sales-follow-up",
-        "agent-templates/sales-marketing/product-launch",
-        "agent-templates/sales-marketing/win-back",
-        "agent-templates/sales-marketing/event-registration"
-      ]
-    },
-    {
-      "group": "Customer Success Templates",
-      "pages": [
-        "agent-templates/customer-success/survey-feedback",
-        "agent-templates/customer-success/renewal-reminder",
-        "agent-templates/customer-success/customer-health-check",
-        "agent-templates/customer-success/training-adoption"
-      ]
-    },
-    {
-      "group": "Operations & Logistics Templates",
-      "pages": [
-        "agent-templates/operations/delivery-confirmation",
-        "agent-templates/operations/order-status",
-        "agent-templates/operations/payment-reminder",
-        "agent-templates/operations/warranty-service"
-      ]
-    },
-    {
-      "group": "Industry-Specific Templates",
-      "pages": [
-        "agent-templates/industry-specific/real-estate-lead",
-        "agent-templates/industry-specific/insurance-quote",
-        "agent-templates/industry-specific/loan-application",
-        "agent-templates/industry-specific/healthcare-intake",
-        "agent-templates/industry-specific/education-admissions",
-        "agent-templates/industry-specific/restaurant-reservation",
-        "agent-templates/industry-specific/gym-fitness",
-        "agent-templates/industry-specific/travel-booking",
-        "agent-templates/industry-specific/veterinary-appointment",
-        "agent-templates/industry-specific/legal-consultation"
-      ]
-    },
-    {
-      "group": "Legacy Templates",
-      "pages": [
-        "leadqualification",
-        "customersupportagent"
+        "agent-templates/customer-success/renewal-reminder"
       ]
     },
     {
