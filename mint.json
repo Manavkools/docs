@@ -152,6 +152,13 @@
         "api-reference/get-voices",
         "api-reference/create-campaign"
       ]
+    },
+    {
+      "group": "TTS API",
+      "pages": [
+        "tts-api/tts-streaming",
+        "tts-api/tts-livekit-integration"
+      ]
     }
   ],
   "footerSocials": {
