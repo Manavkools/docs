@@ -5,7 +5,7 @@ description: "Streaming Text-to-Speech API for real-time voice synthesis"
 
 ## Overview
 
-Tabbly TTS provides a streaming Text-to-Speech API that bridges to Inworld AI's TTS service. This API allows you to generate high-quality voice audio in real-time for your voice AI applications.
+Tabbly TTS provides a streaming Text-to-Speech API that allows you to generate high-quality voice audio in real-time for your voice AI applications.
 
 ## Base URL
 
@@ -39,8 +39,8 @@ All requests require an API key passed via the `X-API-Key` header.
   Voice ID to use for synthesis. Default: "Ashley"
 </ParamField>
 
-<ParamField body="model_id" type="string" default="inworld-tts-1">
-  Model ID to use. Default: "inworld-tts-1"
+<ParamField body="model_id" type="string" default="tabbly-tts-1">
+  Model ID to use. Default: "tabbly-tts-1"
 </ParamField>
 
 ## Response
@@ -62,7 +62,7 @@ curl -X POST 'https://ttsapi-uuskz.ondigitalocean.app/tts/stream' \
 -d '{
     "text": "Hello, this is a test of the Tabbly TTS streaming API",
     "voice_id": "Ashley",
-    "model_id": "inworld-tts-1"
+    "model_id": "tabbly-tts-1"
 }'
 ```
 
@@ -78,7 +78,7 @@ async def stream_tts(text: str, api_key: str):
     data = {
         "text": text,
         "voice_id": "Ashley",
-        "model_id": "inworld-tts-1",
+        "model_id": "tabbly-tts-1",
     }
     
     async with httpx.AsyncClient() as client:
@@ -98,7 +98,7 @@ async function streamTTS(text, apiKey) {
         {
             text: text,
             voice_id: 'Ashley',
-            model_id: 'inworld-tts-1'
+            model_id: 'tabbly-tts-1'
         },
         {
             headers: {

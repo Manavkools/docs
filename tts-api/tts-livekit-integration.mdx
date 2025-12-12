@@ -5,7 +5,7 @@ description: "Integrate Tabbly TTS with LiveKit Agents for voice AI applications
 
 ## Overview
 
-This guide explains how to integrate Tabbly TTS API with LiveKit Agents for voice AI applications. Tabbly TTS provides a streaming Text-to-Speech API that bridges to Inworld AI's TTS service, allowing you to use Tabbly TTS as a TTS provider in your LiveKit voice agents.
+This guide explains how to integrate Tabbly TTS API with LiveKit Agents for voice AI applications. Tabbly TTS provides a streaming Text-to-Speech API that allows you to use Tabbly TTS as a TTS provider in your LiveKit voice agents.
 
 ## Prerequisites
 
@@ -31,7 +31,7 @@ class TabblyTTS(tts.TTS):
         self,
         api_key: str,
         voice_id: str = "Ashley",
-        model_id: str = "inworld-tts-1",
+        model_id: str = "tabbly-tts-1",
         base_url: str = "https://ttsapi-uuskz.ondigitalocean.app",
     ):
         super().__init__(
@@ -148,7 +148,7 @@ async def entrypoint(ctx: agents.JobContext):
     tabbly_tts = TabblyTTS(
         api_key="your-api-key-here",
         voice_id="Ashley",  # Optional, defaults to "Ashley"
-        model_id="inworld-tts-1",  # Optional, defaults to "inworld-tts-1"
+        model_id="tabbly-tts-1",  # Optional, defaults to "tabbly-tts-1"
     )
     
     # Create agent session with Tabbly TTS
@@ -174,8 +174,8 @@ async def entrypoint(ctx: agents.JobContext):
   Voice ID to use (default: "Ashley")
 </ResponseField>
 
-<ResponseField name="model_id" type="string" default="inworld-tts-1">
-  Model ID to use (default: "inworld-tts-1")
+<ResponseField name="model_id" type="string" default="tabbly-tts-1">
+  Model ID to use (default: "tabbly-tts-1")
 </ResponseField>
 
 <ResponseField name="base_url" type="string" default="https://ttsapi-uuskz.ondigitalocean.app">
@@ -296,7 +296,7 @@ class TabblyTTS(tts.TTS):
         self,
         api_key: str,
         voice_id: str = "Ashley",
-        model_id: str = "inworld-tts-1",
+        model_id: str = "tabbly-tts-1",
         base_url: str = "https://ttsapi-uuskz.ondigitalocean.app",
     ):
         super().__init__(
