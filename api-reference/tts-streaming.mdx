@@ -1,0 +1,212 @@
+---
+title: "TTS Streaming API"
+description: "Streaming Text-to-Speech API for real-time voice synthesis"
+---
+
+## Overview
+
+Tabbly TTS provides a streaming Text-to-Speech API that bridges to Inworld AI's TTS service. This API allows you to generate high-quality voice audio in real-time for your voice AI applications.
+
+## Base URL
+
+```
+https://ttsapi-uuskz.ondigitalocean.app
+```
+
+## Endpoint
+
+<ApiMethod method="post" path="/tts/stream">
+
+Streaming Text-to-Speech endpoint that returns audio in real-time as WAV format.
+
+</ApiMethod>
+
+## Authentication
+
+All requests require an API key passed via the `X-API-Key` header.
+
+<ParamField header="X-API-Key" type="string" required>
+  Your Tabbly TTS API key
+</ParamField>
+
+## Request
+
+<ParamField body="text" type="string" required>
+  The text to convert to speech
+</ParamField>
+
+<ParamField body="voice_id" type="string" default="Ashley">
+  Voice ID to use for synthesis. Default: "Ashley"
+</ParamField>
+
+<ParamField body="model_id" type="string" default="inworld-tts-1">
+  Model ID to use. Default: "inworld-tts-1"
+</ParamField>
+
+## Response
+
+**Content-Type:** `audio/wav`
+
+**Format:** LINEAR16 PCM, 48kHz, mono
+
+**Streaming:** Yes - audio is streamed as it's generated
+
+## Example Request
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST 'https://ttsapi-uuskz.ondigitalocean.app/tts/stream' \
+-H 'Content-Type: application/json' \
+-H 'X-API-Key: your-api-key-here' \
+-d '{
+    "text": "Hello, this is a test of the Tabbly TTS streaming API",
+    "voice_id": "Ashley",
+    "model_id": "inworld-tts-1"
+}'
+```
+
+```python Python
+import httpx
+
+async def stream_tts(text: str, api_key: str):
+    url = "https://ttsapi-uuskz.ondigitalocean.app/tts/stream"
+    headers = {
+        "Content-Type": "application/json",
+        "X-API-Key": api_key,
+    }
+    data = {
+        "text": text,
+        "voice_id": "Ashley",
+        "model_id": "inworld-tts-1",
+    }
+    
+    async with httpx.AsyncClient() as client:
+        async with client.stream("POST", url, json=data, headers=headers) as response:
+            response.raise_for_status()
+            async for chunk in response.aiter_bytes():
+                # Process audio chunk
+                yield chunk
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function streamTTS(text, apiKey) {
+    const response = await axios.post(
+        'https://ttsapi-uuskz.ondigitalocean.app/tts/stream',
+        {
+            text: text,
+            voice_id: 'Ashley',
+            model_id: 'inworld-tts-1'
+        },
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': apiKey
+            },
+            responseType: 'stream'
+        }
+    );
+    
+    return response.data;
+}
+```
+
+</CodeGroup>
+
+## Audio Format
+
+<ResponseField name="Sample Rate" type="integer">
+  48000 Hz (fixed)
+</ResponseField>
+
+<ResponseField name="Channels" type="integer">
+  1 (mono)
+</ResponseField>
+
+<ResponseField name="Bit Depth" type="integer">
+  16-bit
+</ResponseField>
+
+<ResponseField name="Format" type="string">
+  LINEAR16 PCM
+</ResponseField>
+
+<ResponseField name="MIME Type" type="string">
+  audio/wav
+</ResponseField>
+
+## WAV Header
+
+The response includes a standard WAV file header (typically 44 bytes) followed by the audio data. When processing the stream:
+
+1. **Skip the WAV header** (first 44 bytes typically)
+2. **Extract audio data** from the "data" chunk
+3. **Process audio chunks** as they arrive
+
+## Error Responses
+
+<ResponseField name="400" type="object">
+  Bad Request - Invalid parameters or missing required fields
+</ResponseField>
+
+<ResponseField name="401" type="object">
+  Unauthorized - Invalid or missing API key
+</ResponseField>
+
+<ResponseField name="500" type="object">
+  Server error
+</ResponseField>
+
+## Rate Limits
+
+API rate limits apply to prevent abuse. Contact support if you need higher limits.
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Stream Processing">
+    Process audio chunks as they arrive rather than waiting for the complete response. This reduces latency.
+  </Accordion>
+  
+  <Accordion title="Error Handling">
+    Always handle HTTP errors and network timeouts gracefully. Implement retry logic for transient failures.
+  </Accordion>
+  
+  <Accordion title="Voice Selection">
+    Choose appropriate voice_id based on your use case. Different voices may have different characteristics.
+  </Accordion>
+  
+  <Accordion title="Text Length">
+    For very long texts, consider splitting into smaller chunks for better streaming performance.
+  </Accordion>
+  
+  <Accordion title="Connection Reuse">
+    Reuse HTTP client connections when making multiple requests to improve performance.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+**No Audio Output**
+- Verify API key is correct
+- Check network connectivity
+- Review response status code
+
+**Audio Quality Issues**
+- Ensure sample rate matches (48000 Hz)
+- Verify WAV header parsing
+- Check audio data format
+
+**Performance Issues**
+- Reuse HTTP client instances
+- Monitor API response times
+- Consider caching for repeated text
+
+## Next Steps
+
+- Learn how to integrate with LiveKit: [LiveKit Integration](/api-reference/tts-livekit-integration)
+- Get your API key from the Tabbly dashboard
+- Review example implementations in the code samples above
+

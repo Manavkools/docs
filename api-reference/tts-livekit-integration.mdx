@@ -1,0 +1,441 @@
+---
+title: "TTS LiveKit Integration"
+description: "Integrate Tabbly TTS with LiveKit Agents for voice AI applications"
+---
+
+## Overview
+
+This guide explains how to integrate Tabbly TTS API with LiveKit Agents for voice AI applications. Tabbly TTS provides a streaming Text-to-Speech API that bridges to Inworld AI's TTS service, allowing you to use Tabbly TTS as a TTS provider in your LiveKit voice agents.
+
+## Prerequisites
+
+- LiveKit Agents Python SDK installed
+- Tabbly TTS API key
+- Python 3.11+
+
+## Integration Steps
+
+### 1. Create the TTS Class
+
+Create a custom TTS class that inherits from `livekit.agents.tts.TTS`:
+
+```python
+from livekit.agents import tts, utils
+from livekit.agents.types import DEFAULT_API_CONNECT_OPTIONS
+import httpx
+from typing import Any
+
+
+class TabblyTTS(tts.TTS):
+    def __init__(
+        self,
+        api_key: str,
+        voice_id: str = "Ashley",
+        model_id: str = "inworld-tts-1",
+        base_url: str = "https://ttsapi-uuskz.ondigitalocean.app",
+    ):
+        super().__init__(
+            capabilities=tts.TTSCapabilities(streaming=False),
+            sample_rate=48000,
+            num_channels=1,
+        )
+        self.api_key = api_key
+        self.voice_id = voice_id
+        self.model_id = model_id
+        self.base_url = base_url
+        self._http_client = None
+    
+    @property
+    def http_client(self):
+        if self._http_client is None:
+            self._http_client = httpx.AsyncClient(timeout=60.0, follow_redirects=True)
+        return self._http_client
+    
+    def synthesize(
+        self, 
+        text: str, 
+        conn_options: Any = DEFAULT_API_CONNECT_OPTIONS,
+    ) -> tts.ChunkedStream:
+        return TabblyChunkedStream(
+            tts=self,
+            input_text=text,
+            conn_options=conn_options,
+        )
+```
+
+### 2. Create the ChunkedStream Class
+
+Implement a `ChunkedStream` that handles the audio streaming:
+
+```python
+class TabblyChunkedStream(tts.ChunkedStream):
+    def __init__(
+        self,
+        *,
+        tts: TabblyTTS,
+        input_text: str,
+        conn_options: Any,
+    ) -> None:
+        super().__init__(tts=tts, input_text=input_text, conn_options=conn_options)
+        self._tts = tts
+        self._input_text = input_text
+        self._conn_options = conn_options
+    
+    async def _run(self, output_emitter: tts.AudioEmitter) -> None:
+        # Initialize AudioEmitter
+        output_emitter.initialize(
+            request_id=utils.shortuuid(),
+            sample_rate=48000,
+            num_channels=1,
+            mime_type="audio/pcm",
+        )
+        
+        # Make API request
+        url = f"{self._tts.base_url}/tts/stream"
+        headers = {
+            "Content-Type": "application/json",
+            "X-API-Key": self._tts.api_key,
+        }
+        data = {
+            "text": self._input_text,
+            "voice_id": self._tts.voice_id,
+            "model_id": self._tts.model_id,
+        }
+        
+        async with self._tts.http_client.stream("POST", url, json=data, headers=headers) as response:
+            response.raise_for_status()
+            
+            # Parse WAV header and stream audio
+            buffer = bytearray()
+            header_skipped = False
+            
+            async for chunk in response.aiter_bytes():
+                if chunk:
+                    buffer.extend(chunk)
+                    
+                    # Skip WAV header (44 bytes typically)
+                    if not header_skipped and len(buffer) >= 44:
+                        if buffer[:4] == b'RIFF' and buffer[8:12] == b'WAVE':
+                            # Find "data" chunk and skip header
+                            for i in range(12, min(len(buffer), 200)):
+                                if buffer[i:i+4] == b'data':
+                                    buffer = buffer[i+8:]  # Skip "data" + size
+                                    break
+                            else:
+                                buffer = buffer[44:]  # Fallback
+                        header_skipped = True
+                    
+                    # Push audio data as it arrives
+                    if header_skipped:
+                        output_emitter.push(bytes(buffer))
+                        buffer.clear()
+        
+        # Flush remaining data
+        output_emitter.flush()
+```
+
+### 3. Use in Your Agent
+
+In your LiveKit agent entrypoint:
+
+```python
+from livekit import agents
+from livekit.agents import AgentSession
+
+
+async def entrypoint(ctx: agents.JobContext):
+    # Create Tabbly TTS instance
+    tabbly_tts = TabblyTTS(
+        api_key="your-api-key-here",
+        voice_id="Ashley",  # Optional, defaults to "Ashley"
+        model_id="inworld-tts-1",  # Optional, defaults to "inworld-tts-1"
+    )
+    
+    # Create agent session with Tabbly TTS
+    session = AgentSession(
+        tts=tabbly_tts,
+        stt=your_stt_provider,
+        llm=your_llm_provider,
+    )
+    
+    await ctx.connect()
+    await session.start(room=ctx.room, agent=your_agent)
+```
+
+## Configuration Options
+
+### TabblyTTS Parameters
+
+<ResponseField name="api_key" type="string" required>
+  Your Tabbly TTS API key
+</ResponseField>
+
+<ResponseField name="voice_id" type="string" default="Ashley">
+  Voice ID to use (default: "Ashley")
+</ResponseField>
+
+<ResponseField name="model_id" type="string" default="inworld-tts-1">
+  Model ID to use (default: "inworld-tts-1")
+</ResponseField>
+
+<ResponseField name="base_url" type="string" default="https://ttsapi-uuskz.ondigitalocean.app">
+  API base URL
+</ResponseField>
+
+### Audio Configuration
+
+<ResponseField name="Sample Rate" type="integer">
+  48000 Hz (fixed)
+</ResponseField>
+
+<ResponseField name="Channels" type="integer">
+  1 (mono)
+</ResponseField>
+
+<ResponseField name="Format" type="string">
+  LINEAR16 PCM (16-bit)
+</ResponseField>
+
+<ResponseField name="MIME Type" type="string">
+  audio/pcm
+</ResponseField>
+
+## Error Handling
+
+The implementation handles:
+
+- **HTTP errors** from the API
+- **WAV header parsing** errors
+- **Network timeouts**
+- **AudioEmitter initialization** errors
+
+### Example Error Handling
+
+```python
+try:
+    audio_stream = tabbly_tts.synthesize(text="Hello world")
+    async for chunk in audio_stream:
+        # Process audio chunk
+        pass
+except httpx.HTTPError as e:
+    logger.error(f"HTTP error: {e}")
+except Exception as e:
+    logger.error(f"TTS error: {e}")
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Reuse HTTP Client">
+    The implementation reuses a single HTTP client for better performance. Don't create new clients for each request.
+  </Accordion>
+  
+  <Accordion title="Handle Errors">
+    Always wrap TTS calls in try-except blocks to handle network and API errors gracefully.
+  </Accordion>
+  
+  <Accordion title="Monitor API Usage">
+    Track your API usage through Tabbly's dashboard to manage costs and quotas.
+  </Accordion>
+  
+  <Accordion title="Voice Selection">
+    Choose appropriate voice_id based on your use case. Different voices may have different characteristics and languages.
+  </Accordion>
+  
+  <Accordion title="Model Selection">
+    Use the appropriate model_id for your language and quality requirements.
+  </Accordion>
+</AccordionGroup>
+
+## Example: Using with Metadata
+
+You can configure Tabbly TTS via LiveKit job metadata:
+
+```python
+# In your job creation
+metadata = {
+    "tts_library": "tabbly",
+    "use_tts_voice": "Ashley",
+    "tts_api_key": "your-api-key"
+}
+
+# In your entrypoint
+async def entrypoint(ctx: agents.JobContext):
+    metadata = ctx.job.metadata
+    
+    if metadata.get("tts_library", "").lower() == "tabbly":
+        tts_config = TabblyTTS(
+            api_key=metadata.get("tts_api_key", "default-key"),
+            voice_id=metadata.get("use_tts_voice", "Ashley"),
+        )
+        
+        session = AgentSession(
+            tts=tts_config,
+            stt=your_stt_provider,
+            llm=your_llm_provider,
+        )
+        
+        await ctx.connect()
+        await session.start(room=ctx.room, agent=your_agent)
+```
+
+## Complete Example
+
+Here's a complete example combining all components:
+
+```python
+from livekit import agents
+from livekit.agents import tts, utils, AgentSession
+from livekit.agents.types import DEFAULT_API_CONNECT_OPTIONS
+import httpx
+from typing import Any
+
+
+class TabblyTTS(tts.TTS):
+    def __init__(
+        self,
+        api_key: str,
+        voice_id: str = "Ashley",
+        model_id: str = "inworld-tts-1",
+        base_url: str = "https://ttsapi-uuskz.ondigitalocean.app",
+    ):
+        super().__init__(
+            capabilities=tts.TTSCapabilities(streaming=False),
+            sample_rate=48000,
+            num_channels=1,
+        )
+        self.api_key = api_key
+        self.voice_id = voice_id
+        self.model_id = model_id
+        self.base_url = base_url
+        self._http_client = None
+    
+    @property
+    def http_client(self):
+        if self._http_client is None:
+            self._http_client = httpx.AsyncClient(timeout=60.0, follow_redirects=True)
+        return self._http_client
+    
+    def synthesize(
+        self, 
+        text: str, 
+        conn_options: Any = DEFAULT_API_CONNECT_OPTIONS,
+    ) -> tts.ChunkedStream:
+        return TabblyChunkedStream(
+            tts=self,
+            input_text=text,
+            conn_options=conn_options,
+        )
+
+
+class TabblyChunkedStream(tts.ChunkedStream):
+    def __init__(
+        self,
+        *,
+        tts: TabblyTTS,
+        input_text: str,
+        conn_options: Any,
+    ) -> None:
+        super().__init__(tts=tts, input_text=input_text, conn_options=conn_options)
+        self._tts = tts
+        self._input_text = input_text
+        self._conn_options = conn_options
+    
+    async def _run(self, output_emitter: tts.AudioEmitter) -> None:
+        output_emitter.initialize(
+            request_id=utils.shortuuid(),
+            sample_rate=48000,
+            num_channels=1,
+            mime_type="audio/pcm",
+        )
+        
+        url = f"{self._tts.base_url}/tts/stream"
+        headers = {
+            "Content-Type": "application/json",
+            "X-API-Key": self._tts.api_key,
+        }
+        data = {
+            "text": self._input_text,
+            "voice_id": self._tts.voice_id,
+            "model_id": self._tts.model_id,
+        }
+        
+        async with self._tts.http_client.stream("POST", url, json=data, headers=headers) as response:
+            response.raise_for_status()
+            
+            buffer = bytearray()
+            header_skipped = False
+            
+            async for chunk in response.aiter_bytes():
+                if chunk:
+                    buffer.extend(chunk)
+                    
+                    if not header_skipped and len(buffer) >= 44:
+                        if buffer[:4] == b'RIFF' and buffer[8:12] == b'WAVE':
+                            for i in range(12, min(len(buffer), 200)):
+                                if buffer[i:i+4] == b'data':
+                                    buffer = buffer[i+8:]
+                                    break
+                            else:
+                                buffer = buffer[44:]
+                        header_skipped = True
+                    
+                    if header_skipped:
+                        output_emitter.push(bytes(buffer))
+                        buffer.clear()
+        
+        output_emitter.flush()
+
+
+async def entrypoint(ctx: agents.JobContext):
+    tabbly_tts = TabblyTTS(
+        api_key="your-api-key-here",
+        voice_id="Ashley",
+    )
+    
+    session = AgentSession(
+        tts=tabbly_tts,
+        stt=your_stt_provider,
+        llm=your_llm_provider,
+    )
+    
+    await ctx.connect()
+    await session.start(room=ctx.room, agent=your_agent)
+```
+
+## Troubleshooting
+
+### No Audio Output
+
+- Check API key is valid
+- Verify network connectivity
+- Check logs for HTTP errors
+- Ensure AudioEmitter is initialized correctly
+
+### Audio Quality Issues
+
+- Ensure sample rate matches (48000 Hz)
+- Verify WAV header is being parsed correctly
+- Check if audio data is being pushed correctly
+- Verify mono channel configuration
+
+### Performance Issues
+
+- Reuse HTTP client instances
+- Monitor API response times
+- Consider caching for repeated text
+- Check network latency to API endpoint
+
+## Support
+
+For issues or questions:
+
+- Check [TTS Streaming API documentation](/api-reference/tts-streaming)
+- Review [LiveKit Agents documentation](https://docs.livekit.io/agents)
+- Check application logs for detailed error messages
+- Contact Tabbly support for API-related issues
+
+## License
+
+This integration follows the same license as your LiveKit Agents project.
+
