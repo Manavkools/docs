@@ -157,12 +157,7 @@
       "group": "TTS API",
       "pages": [
         "tts-api/tts-streaming",
-        {
-          "group": "TTS LiveKit Integration",
-          "pages": [
-            "tts-api/tts-livekit-integration"
-          ]
-        }
+        "tts-api/tts-livekit-integration"
       ]
     }
   ],
