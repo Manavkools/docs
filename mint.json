@@ -29,6 +29,10 @@
     {
       "name": "API Reference",
       "url": "api-reference"
+    },
+    {
+      "name": "TTS API",
+      "url": "api-reference/tts-streaming"
     }
   ],
   "anchors": [
