@@ -1,0 +1,417 @@
+---
+title: "Best Practices"
+description: "Learn best practices for synthesizing high-quality speech with Tabbly TTS"
+---
+
+## Overview
+
+This guide covers techniques and best practices for generating high-quality, natural-sounding speech for your applications using Tabbly TTS.
+
+## General Best Practices
+
+### 1. Pick a Suitable Voice
+
+Different voices will be better suited for different applications. Choose a voice that matches the emotional range and expression you're looking for. For example:
+
+- **Meditation app**: Select a steady and calm voice
+- **Fitness coach**: Select an expressive and energetic voice
+- **Customer support**: Select a professional and friendly voice
+- **Educational content**: Select a clear and articulate voice
+
+### 2. Pay Attention to Punctuation
+
+Punctuation matters! Use it effectively to control speech delivery:
+
+- **Exclamation points (!)**: Make the voice more emphatic and excited
+- **Ellipsis (...)**: Insert natural pauses
+- **Dashes (—)**: Create pauses or breaks in thought
+- **Periods (.)**: Natural sentence endings
+- **Commas (,)**: Brief pauses between phrases
+
+Always include punctuation at the end of sentences for natural speech flow.
+
+### 3. Use Asterisks for Emphasis
+
+You can emphasize specific words by surrounding them with asterisks. This helps clarify tone or intent in nuanced dialogue.
+
+**Examples:**
+- `We *need* a beach vacation` - Emphasizes "need"
+- `We need a *beach* vacation` - Emphasizes "beach"
+- `*This* is the most important point` - Emphasizes "This"
+
+### 4. Match the Voice to the Text Language
+
+Voices perform optimally when synthesizing text in the same language as the original voice. While cross-language synthesis is possible, you'll achieve the best quality, pronunciation, and naturalness by matching the voice's native language to your text content.
+
+### 5. Normalize Complex Text
+
+If you find that the model is mispronouncing certain complex phrases like phone numbers or dollar amounts, normalize the text. This is particularly helpful for non-English languages.
+
+**Normalization Examples:**
+
+**Phone Numbers:**
+- `(123)456-7891` → `one two three, four five six, seven eight nine one`
+- `+1-555-123-4567` → `plus one, five five five, one two three, four five six seven`
+
+**Dates:**
+- `5/6/2025` → `may sixth twenty twenty five`
+- `12/25/2024` → `december twenty fifth twenty twenty four`
+
+**Times:**
+- `12:55 PM` → `twelve fifty-five PM`
+- `9:30 AM` → `nine thirty AM`
+
+**Emails:**
+- `test@example.com` → `test at example dot com`
+- `support@tabbly.io` → `support at tabbly dot io`
+
+**Monetary Values:**
+- `$5,342.29` → `five thousand three hundred and forty two dollars and twenty nine cents`
+- `€1,000` → `one thousand euros`
+
+**Symbols and Equations:**
+- `2+2=4` → `two plus two equals four`
+- `100%` → `one hundred percent`
+- `#1` → `number one`
+
+### 6. Tune the Temperature
+
+The temperature controls how random the audio output is:
+
+- **Higher values**: More random outputs, more expressive results
+  - Best for: Barks, demo clips, non-real-time use cases
+  - Range: 1.0 - 1.5
+
+- **Lower values**: More deterministic output
+  - Best for: Real-time use cases, consistent delivery
+  - Range: 0.6 - 1.0 (recommended for real-time)
+  - Default: 1.1
+
+<Warning>
+  Temperatures that are too low will often produce poor results. For real-time use cases, we recommend keeping the temperature between 0.6 and 1.0.
+</Warning>
+
+## Voice Tags
+
+Voice tags provide descriptive metadata about each voice, helping you categorize and filter voices based on their characteristics. Tags describe properties like gender, age group, tone, and style, making it easier to find the right voice for your use case.
+
+### Understanding Voice Tags
+
+Each voice includes a tags array with descriptive labels such as:
+
+**Gender:**
+- `male`
+- `female`
+- `non-binary`
+
+**Age Group:**
+- `young_adult`
+- `adult`
+- `middle-aged`
+- `elderly`
+
+**Vocal Style:**
+- `energetic`
+- `calm`
+- `professional`
+- `friendly`
+- `warm`
+
+**Voice Quality:**
+- `smooth`
+- `clear`
+- `expressive`
+- `conversational`
+
+### Using Voice Tags
+
+When selecting a voice for your application, use tags to find voices that match your requirements:
+
+```python
+# Example: Find a professional, female voice
+voices = get_voices(tags=["female", "professional", "adult"])
+```
+
+## Audio Markups
+
+<Note>
+  Audio markups are currently experimental and only support English. They are not recommended for real-time, production use cases.
+</Note>
+
+Audio markups give you control over how the model speaks, not just what it says. These markups can be used to control emotional expression, delivery style, and non-verbal vocalizations.
+
+### Emotion and Delivery Style
+
+Emotion and delivery style markups control the way a given text is spoken. These work best when used at the beginning of a text and apply to the text that follows.
+
+**Emotions:**
+- `[happy]` - Happy, cheerful tone
+- `[sad]` - Sad, melancholic tone
+- `[angry]` - Angry, frustrated tone
+- `[surprised]` - Surprised, shocked tone
+- `[fearful]` - Fearful, anxious tone
+- `[disgusted]` - Disgusted, repulsed tone
+
+**Delivery Styles:**
+- `[laughing]` - Laughing while speaking
+- `[whispering]` - Whispered delivery
+
+**Example:**
+```
+[happy] I can't believe this is happening!
+```
+
+<Warning>
+  For best results, use only one emotion or delivery style markup at the beginning of your text. Using multiple emotion and delivery style markups or placing them mid-text may produce mixed results.
+</Warning>
+
+### Non-verbal Vocalization
+
+Non-verbal vocalization markups add non-verbal sounds based on where they are placed in the text.
+
+**Available Markups:**
+- `[breathe]` - Breathing sound
+- `[clear_throat]` - Throat clearing
+- `[cough]` - Coughing
+- `[laugh]` - Laughing
+- `[sigh]` - Sighing
+- `[yawn]` - Yawning
+
+**Example:**
+```
+[clear_throat] Did you hear what I said? [sigh] You never listen to me!
+```
+
+Multiple non-verbal vocalizations can be used within a single piece of text to add appropriate vocal effects throughout the speech.
+
+### Best Practices for Audio Markups
+
+1. **Choose Contextually Appropriate Markups**
+   - Markups work best when they make sense with the text content
+   - Avoid contradictions between markup and text
+   
+   **Bad Example:**
+   ```
+   [angry] I appreciate your help and I'm really grateful for your kindness.
+   ```
+   The text is grateful, which contradicts the angry markup.
+
+2. **Avoid Conflicting Markups**
+   - Ensure multiple markups don't conflict with each other
+   
+   **Bad Example:**
+   ```
+   [angry] I can't believe you did that. [yawn] You never listen.
+   ```
+   Yawning indicates boredom, which rarely occurs alongside anger.
+
+3. **Break Up the Text**
+   - Emotion and delivery style markups work best at the beginning with a single markup per request
+   - Break complex text into separate requests
+   
+   **Instead of:**
+   ```
+   [angry] I can't believe you didn't save the last bite of cake for me. [laughing] Got you! I was just kidding.
+   ```
+   
+   **Do this:**
+   ```
+   [angry] I can't believe you didn't save the last bite of cake for me.
+   ```
+   ```
+   [laughing] Got you! I was just kidding.
+   ```
+
+4. **Repeat Non-verbal Vocalizations if Necessary**
+   - If a non-verbal vocalization is consistently being omitted, repeat the markup
+   - Works best for vocalizations where repetition sounds natural
+   
+   **Examples:**
+   ```
+   [laugh] [laugh] That's hilarious!
+   [cough] [cough] Excuse me, let me continue.
+   ```
+
+## Custom Pronunciation
+
+Sometimes you may need to ensure that a word is spoken with a specific pronunciation, especially for uncommon words such as company names, brand names, nicknames, geographic locations, medical terms, or legal terms that may not appear in the model's training data.
+
+### How to Use
+
+Tabbly TTS supports inline IPA phoneme notation for custom pronunciation. Use the International Phonetic Alphabet (IPA) format, wrapped in slashes (`/ /`).
+
+**Example:**
+Suppose you are building an AI travel agent, and it is recommending the destination Crete, which is pronounced `/kriːt/` ("kreet") in English.
+
+You can ensure the correct pronunciation by passing it inline:
+```
+Your interests are a perfect match for a honeymoon in /kriːt/.
+```
+
+The model will substitute the IPA pronunciation wherever it appears inline in your text. If the text is generated by an LLM, you can simply replace the original spelling with the IPA transcription before passing it to the TTS model.
+
+### Finding the Right IPA Phonemes
+
+If you are unsure of the correct phonemes, there are several ways to find them:
+
+1. **Ask an LLM**: Use ChatGPT or similar services:
+   ```
+   "What are the IPA phonemes for the word Crete, pronounced like 'kreet'?"
+   ```
+
+2. **Use Reference Websites**: Resources such as Vocabulary.com's IPA Pronunciation Guide provide tables of symbols with example words.
+
+3. **Online IPA Converters**: Various online tools can help convert words to IPA notation.
+
+Once you have the correct phonemes, you can embed them directly into your TTS request:
+```
+Your adventure in /kriːt/ begins today.
+```
+
+## Natural, Conversational Speech
+
+Natural human conversation is not perfect. It's full of filler words, pauses, and other natural speech patterns that make it sound more human.
+
+Tabbly TTS models are trained to generate the requested text as is, in order to produce the most accurate and consistent output that can be used for a wide range of applications.
+
+To generate natural, conversational speech, you can use the following techniques:
+
+### 1. Insert Filler Words
+
+Add filler words like `uh`, `um`, `well`, `like`, and `you know` in the text.
+
+**Instead of:**
+```
+I'm not too sure about that.
+```
+
+**Use:**
+```
+Uh, I'm not uh too sure about that.
+```
+
+If the text is already being generated using an LLM, you can add instructions in the prompt to insert filler words in the response. Alternatively, you can use a small LLM to insert filler words given a piece of text.
+
+### 2. Use Audio Markups
+
+Use [audio markups](#audio-markups) to add non-verbal vocalizations like `[sigh]`, `[breathe]`, `[clear_throat]`. These natural speech patterns can make the speech sound more natural.
+
+**Example:**
+```
+Well, [sigh] I guess we could try that approach. [breathe] Let me think about it.
+```
+
+## Advanced Tips
+
+### Text Chunking
+
+For very long texts, consider splitting into smaller chunks for better streaming performance and more natural delivery:
+
+- **Optimal chunk size**: 50-200 words
+- **Natural break points**: Sentence endings, paragraph breaks
+- **Benefits**: Faster streaming, better quality, more natural pauses
+
+### Error Handling
+
+Always implement proper error handling for TTS requests:
+
+```python
+try:
+    audio_stream = tabbly_tts.synthesize(text="Hello world")
+    async for chunk in audio_stream:
+        # Process audio chunk
+        pass
+except httpx.HTTPError as e:
+    logger.error(f"HTTP error: {e}")
+    # Implement retry logic
+except Exception as e:
+    logger.error(f"TTS error: {e}")
+    # Fallback to default voice or text
+```
+
+### Caching
+
+Consider caching frequently used phrases or responses:
+
+- **Cache key**: Text content + voice_id + model_id
+- **Cache duration**: Based on your use case
+- **Benefits**: Reduced API calls, faster response times, cost savings
+
+### Performance Optimization
+
+1. **Reuse HTTP Clients**: Don't create new clients for each request
+2. **Connection Pooling**: Use connection pooling for better performance
+3. **Async Processing**: Use async/await for non-blocking operations
+4. **Batch Requests**: When possible, batch multiple TTS requests
+
+## Common Use Cases
+
+### Customer Support
+
+- **Voice**: Professional, friendly, calm
+- **Style**: Clear and articulate
+- **Punctuation**: Use commas for natural pauses
+- **Example**: `Hello, thank you for calling. How can I help you today?`
+
+### E-learning
+
+- **Voice**: Clear, articulate, patient
+- **Style**: Educational and engaging
+- **Pace**: Slightly slower for comprehension
+- **Example**: `Today, we're going to learn about...`
+
+### Entertainment
+
+- **Voice**: Expressive, energetic
+- **Style**: Dynamic and engaging
+- **Markups**: Use emotion markups for variety
+- **Example**: `[excited] Welcome to the show!`
+
+### Accessibility
+
+- **Voice**: Clear, consistent
+- **Style**: Predictable and easy to understand
+- **Normalization**: Always normalize numbers and symbols
+- **Example**: `The time is twelve thirty PM.`
+
+## Troubleshooting
+
+### Mispronunciations
+
+- **Normalize text**: Convert numbers, dates, symbols to words
+- **Use custom pronunciation**: For brand names and technical terms
+- **Check language match**: Ensure voice language matches text language
+
+### Unnatural Speech
+
+- **Add punctuation**: Use commas, periods, ellipses
+- **Insert filler words**: Add natural speech patterns
+- **Use audio markups**: Add non-verbal vocalizations
+- **Adjust temperature**: Try different temperature values
+
+### Performance Issues
+
+- **Chunk long texts**: Split into smaller pieces
+- **Cache responses**: Store frequently used phrases
+- **Reuse connections**: Don't create new HTTP clients
+- **Monitor API usage**: Track response times and errors
+
+## Summary
+
+Following these best practices will help you generate high-quality, natural-sounding speech with Tabbly TTS:
+
+1. ✅ Choose appropriate voices for your use case
+2. ✅ Use punctuation effectively
+3. ✅ Normalize complex text (numbers, dates, symbols)
+4. ✅ Match voice language to text language
+5. ✅ Tune temperature for your use case
+6. ✅ Use audio markups for natural speech (experimental)
+7. ✅ Implement custom pronunciation for special terms
+8. ✅ Add filler words for conversational speech
+9. ✅ Handle errors gracefully
+10. ✅ Optimize for performance
+
+For more information, see:
+- [TTS Streaming API](/tts-api/tts-streaming)
+- [TTS LiveKit Integration](/tts-api/tts-livekit-integration)
+
