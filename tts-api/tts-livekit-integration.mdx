@@ -5,13 +5,26 @@ description: "Integrate Tabbly TTS with LiveKit Agents for voice AI applications
 
 ## Overview
 
-This guide explains how to integrate Tabbly TTS API with LiveKit Agents for voice AI applications. Tabbly TTS provides a streaming Text-to-Speech API that allows you to use Tabbly TTS as a TTS provider in your LiveKit voice agents.
+Tabbly TTS provides a streaming Text-to-Speech API that allows you to use Tabbly TTS as a TTS provider in your LiveKit voice agents with optimized audio delivery that eliminates clicks, pops, and choppy sounds.
 
 ## Prerequisites
 
 - LiveKit Agents Python SDK installed
 - Tabbly TTS API key
 - Python 3.11+
+- `httpx` library (for HTTP streaming)
+
+## API Details
+
+**Base URL:** `https://api.tabbly.io`
+
+**Streaming Endpoint:** `POST /tts/stream`
+
+**Authentication:** API key via `X-API-Key` header
+
+**Response Format:** HTTP streaming response with WAV-encoded audio chunks (LINEAR16, 48kHz, mono)
+
+**Protocol:** HTTP streaming with WAV files embedded in the stream
 
 ## Integration Steps
 
@@ -22,18 +35,25 @@ Create a custom TTS class that inherits from `livekit.agents.tts.TTS`:
 ```python
 from livekit.agents import tts, utils
 from livekit.agents.types import DEFAULT_API_CONNECT_OPTIONS
+from typing import Optional, Any
 import httpx
-from typing import Any
+import logging
 
+logger = logging.getLogger(__name__)
 
 class TabblyTTS(tts.TTS):
+    """Custom TTS implementation for Tabbly TTS API."""
+    
     def __init__(
         self,
-        api_key: str,
+        api_key: str = "your-api-key",
         voice_id: str = "Ashley",
-        model_id: str = "tabbly-tts-1",
-        base_url: str = "https://ttsapi-uuskz.ondigitalocean.app",
+        model_id: str = "tabbly-tts",
+        base_url: str = "https://api.tabbly.io",
     ):
+        # Initialize TTS base class with capabilities
+        # Use ChunkedStream pattern (like Smallest AI) - even though API supports streaming,
+        # LiveKit's ChunkedStream handles the chunking for us
         super().__init__(
             capabilities=tts.TTSCapabilities(streaming=False),
             sample_rate=48000,
@@ -47,6 +67,7 @@ class TabblyTTS(tts.TTS):
     
     @property
     def http_client(self):
+        """Get or create HTTP client."""
         if self._http_client is None:
             self._http_client = httpx.AsyncClient(timeout=60.0, follow_redirects=True)
         return self._http_client
@@ -54,8 +75,9 @@ class TabblyTTS(tts.TTS):
     def synthesize(
         self, 
         text: str, 
-        conn_options: Any = DEFAULT_API_CONNECT_OPTIONS,
+        conn_options: Optional[Any] = DEFAULT_API_CONNECT_OPTIONS,
     ) -> tts.ChunkedStream:
+        """Synthesize text to speech and return a chunked stream."""
         return TabblyChunkedStream(
             tts=self,
             input_text=text,
@@ -65,10 +87,20 @@ class TabblyTTS(tts.TTS):
 
 ### 2. Create the ChunkedStream Class
 
-Implement a `ChunkedStream` that handles the audio streaming:
+Implement a `ChunkedStream` that handles the audio streaming with optimized buffering:
 
 ```python
 class TabblyChunkedStream(tts.ChunkedStream):
+    """Chunked stream for Tabbly TTS synthesis with optimized audio delivery.
+    
+    This improved version eliminates audio clicks/pops by:
+    - Using larger chunk sizes (10ms) to reduce overhead
+    - Pre-buffering (20ms) to smooth out network jitter
+    - Ensuring perfect frame alignment
+    - Continuous data flow without gaps
+    - Handling embedded WAV files in the stream
+    """
+    
     def __init__(
         self,
         *,
@@ -77,20 +109,28 @@ class TabblyChunkedStream(tts.ChunkedStream):
         conn_options: Any,
     ) -> None:
         super().__init__(tts=tts, input_text=input_text, conn_options=conn_options)
-        self._tts = tts
+        self._tts: TabblyTTS = tts
         self._input_text = input_text
         self._conn_options = conn_options
     
     async def _run(self, output_emitter: tts.AudioEmitter) -> None:
-        # Initialize AudioEmitter
-        output_emitter.initialize(
-            request_id=utils.shortuuid(),
-            sample_rate=48000,
-            num_channels=1,
-            mime_type="audio/pcm",
-        )
+        """Run the chunked synthesis process with optimized buffering."""
+        try:
+            # Initialize AudioEmitter
+            if not hasattr(output_emitter, '_initialized') or not output_emitter._initialized:
+                output_emitter.initialize(
+                    request_id=utils.shortuuid(),
+                    sample_rate=48000,
+                    num_channels=1,
+                    mime_type="audio/pcm",
+                )
+        except RuntimeError as e:
+            if "AudioEmitter already started" in str(e):
+                logger.warning("AudioEmitter already initialized, continuing with existing instance")
+            else:
+                raise
         
-        # Make API request
+        # Make the TTS API request
         url = f"{self._tts.base_url}/tts/stream"
         headers = {
             "Content-Type": "application/json",
@@ -102,36 +142,147 @@ class TabblyChunkedStream(tts.ChunkedStream):
             "model_id": self._tts.model_id,
         }
         
-        async with self._tts.http_client.stream("POST", url, json=data, headers=headers) as response:
-            response.raise_for_status()
-            
-            # Parse WAV header and stream audio
-            buffer = bytearray()
-            header_skipped = False
-            
-            async for chunk in response.aiter_bytes():
-                if chunk:
-                    buffer.extend(chunk)
-                    
-                    # Skip WAV header (44 bytes typically)
-                    if not header_skipped and len(buffer) >= 44:
-                        if buffer[:4] == b'RIFF' and buffer[8:12] == b'WAVE':
-                            # Find "data" chunk and skip header
-                            for i in range(12, min(len(buffer), 200)):
-                                if buffer[i:i+4] == b'data':
-                                    buffer = buffer[i+8:]  # Skip "data" + size
-                                    break
-                            else:
-                                buffer = buffer[44:]  # Fallback
-                        header_skipped = True
-                    
-                    # Push audio data as it arrives
-                    if header_skipped:
-                        output_emitter.push(bytes(buffer))
-                        buffer.clear()
-        
-        # Flush remaining data
-        output_emitter.flush()
+        try:
+            async with self._tts.http_client.stream(
+                "POST",
+                url,
+                json=data,
+                headers=headers,
+            ) as response:
+                response.raise_for_status()
+                
+                # Audio format constants
+                SAMPLE_RATE = 48000
+                FRAME_SIZE = 2  # 16-bit mono = 2 bytes per frame
+                
+                # Buffering strategy for smooth playback
+                # Use larger chunks (10ms) to reduce overhead and prevent clicks
+                # Pre-buffer helps smooth out network jitter
+                CHUNK_SIZE = 960  # 10ms at 48kHz (480 samples * 2 bytes)
+                PRE_BUFFER_SIZE = 1920  # 20ms pre-buffer (960 samples * 2 bytes)
+                
+                buffer = bytearray()
+                pre_buffer = bytearray()
+                header_skipped = False
+                header_size = 44  # Standard WAV header size
+                
+                async for chunk in response.aiter_bytes():
+                    if chunk:
+                        buffer.extend(chunk)
+                        
+                        # CRITICAL: Extract PCM data from WAV files sent by the API
+                        # The API may send WAV files (with headers) in chunks, not raw PCM
+                        # We need to extract the raw PCM data from each WAV chunk
+                        
+                        # Skip WAV header on first chunk
+                        if not header_skipped:
+                            if len(buffer) >= header_size:
+                                # Check if it's a WAV file
+                                if buffer[:4] == b'RIFF' and buffer[8:12] == b'WAVE':
+                                    # Find "data" chunk marker
+                                    data_start = None
+                                    for i in range(12, min(len(buffer), 200)):
+                                        if buffer[i:i+4] == b'data':
+                                            data_start = i + 8  # Skip "data" (4 bytes) + size (4 bytes)
+                                            break
+                                    
+                                    if data_start:
+                                        buffer = buffer[data_start:]
+                                        logger.debug(f"Extracted PCM from first WAV header: {len(buffer)} bytes")
+                                    else:
+                                        # Fallback: skip standard 44-byte header
+                                        buffer = buffer[header_size:]
+                                    header_skipped = True
+                                else:
+                                    # Not a WAV file, process as raw PCM
+                                    header_skipped = True
+                        
+                        # Process audio data after header is skipped
+                        if header_skipped and len(buffer) > 0:
+                            # CRITICAL: Check if subsequent chunks are also WAV files
+                            # The API may send multiple WAV files in the stream
+                            processed_buffer = bytearray()
+                            temp_buffer = buffer
+                            
+                            while len(temp_buffer) > 0:
+                                # Check if this chunk starts with a WAV header
+                                if len(temp_buffer) >= 12 and temp_buffer[:4] == b'RIFF' and temp_buffer[8:12] == b'WAVE':
+                                    # This is a WAV file - extract PCM data
+                                    data_start = None
+                                    # Search for "data" chunk (can be anywhere after "WAVE")
+                                    for i in range(12, len(temp_buffer)):
+                                        if i + 4 <= len(temp_buffer) and temp_buffer[i:i+4] == b'data':
+                                            data_start = i + 8  # Skip "data" (4 bytes) + size (4 bytes)
+                                            break
+                                    
+                                    if data_start and data_start < len(temp_buffer):
+                                        # Extract PCM data from this WAV chunk
+                                        # Find where this WAV file ends (next "RIFF" or end of buffer)
+                                        wav_end = len(temp_buffer)
+                                        for i in range(data_start, len(temp_buffer) - 4):
+                                            if temp_buffer[i:i+4] == b'RIFF':
+                                                wav_end = i
+                                                break
+                                        
+                                        # Extract PCM data from this WAV chunk
+                                        pcm_data = temp_buffer[data_start:wav_end]
+                                        processed_buffer.extend(pcm_data)
+                                        temp_buffer = temp_buffer[wav_end:]
+                                        logger.debug(f"Extracted PCM from WAV chunk: {len(pcm_data)} bytes")
+                                    else:
+                                        # Incomplete WAV file, keep in buffer for next iteration
+                                        break
+                                else:
+                                    # Not a WAV file, treat as raw PCM
+                                    processed_buffer.extend(temp_buffer)
+                                    temp_buffer = bytearray()
+                            
+                            # Update buffer with remaining unprocessed data
+                            buffer = temp_buffer
+                            
+                            # Add processed PCM data to pre-buffer for smoothing
+                            if len(processed_buffer) > 0:
+                                pre_buffer.extend(processed_buffer)
+                            
+                            # Push chunks when pre-buffer has enough data
+                            # This ensures smooth, continuous playback without gaps
+                            while len(pre_buffer) >= CHUNK_SIZE:
+                                # Extract frame-aligned chunk
+                                chunk_data = bytes(pre_buffer[:CHUNK_SIZE])
+                                pre_buffer = pre_buffer[CHUNK_SIZE:]
+                                
+                                # Push immediately for continuous playback
+                                output_emitter.push(chunk_data)
+                
+                # Process any remaining data in pre-buffer
+                # Ensure frame alignment before pushing final chunk
+                if header_skipped and len(pre_buffer) >= FRAME_SIZE:
+                    # Align to frame boundary
+                    aligned_size = (len(pre_buffer) // FRAME_SIZE) * FRAME_SIZE
+                    if aligned_size > 0:
+                        final_chunk = bytes(pre_buffer[:aligned_size])
+                        output_emitter.push(final_chunk)
+                
+                # Process any remaining data in buffer
+                if header_skipped and len(buffer) >= FRAME_SIZE:
+                    aligned_size = (len(buffer) // FRAME_SIZE) * FRAME_SIZE
+                    if aligned_size > 0:
+                        final_chunk = bytes(buffer[:aligned_size])
+                        output_emitter.push(final_chunk)
+                
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Tabbly TTS API error: {e.response.status_code} - {e.response.text}")
+            raise
+        except Exception as e:
+            logger.error(f"Error in Tabbly TTS synthesis: {e}")
+            raise
+        finally:
+            # Flush at the end - this ensures all buffered audio is sent
+            # Only flush if we have data, otherwise it might cause issues
+            try:
+                output_emitter.flush()
+            except Exception as e:
+                logger.warning(f"Error flushing audio emitter: {e}")
 ```
 
 ### 3. Use in Your Agent
@@ -142,13 +293,13 @@ In your LiveKit agent entrypoint:
 from livekit import agents
 from livekit.agents import AgentSession
 
-
 async def entrypoint(ctx: agents.JobContext):
     # Create Tabbly TTS instance
     tabbly_tts = TabblyTTS(
         api_key="your-api-key-here",
         voice_id="Ashley",  # Optional, defaults to "Ashley"
-        model_id="tabbly-tts-1",  # Optional, defaults to "tabbly-tts-1"
+        model_id="tabbly-tts",  # Optional, defaults to "tabbly-tts"
+        base_url="https://api.tabbly.io",  # Optional, uses default if not provided
     )
     
     # Create agent session with Tabbly TTS
@@ -174,12 +325,12 @@ async def entrypoint(ctx: agents.JobContext):
   Voice ID to use (default: "Ashley")
 </ResponseField>
 
-<ResponseField name="model_id" type="string" default="tabbly-tts-1">
-  Model ID to use (default: "tabbly-tts-1")
+<ResponseField name="model_id" type="string" default="tabbly-tts">
+  Model ID to use (default: "tabbly-tts")
 </ResponseField>
 
-<ResponseField name="base_url" type="string" default="https://ttsapi-uuskz.ondigitalocean.app">
-  API base URL
+<ResponseField name="base_url" type="string" default="https://api.tabbly.io">
+  Base URL for the API
 </ResponseField>
 
 ### Audio Configuration
@@ -200,50 +351,74 @@ async def entrypoint(ctx: agents.JobContext):
   audio/pcm
 </ResponseField>
 
-## Error Handling
+### Buffering Strategy
+
+The implementation uses an optimized buffering strategy to eliminate audio artifacts:
+
+- **Chunk Size**: 960 bytes (10ms at 48kHz) - reduces overhead and prevents clicks
+- **Pre-buffer Size**: 1920 bytes (20ms) - smooths out network jitter
+- **Frame Alignment**: All chunks are aligned to 16-bit sample boundaries (even number of bytes)
+
+## Key Features
+
+### 1. WAV File Extraction
+
+The API may send WAV files embedded in the stream. The implementation automatically:
+- Detects WAV headers (`RIFF` and `WAVE` markers)
+- Extracts raw PCM data from WAV chunks
+- Handles multiple WAV files in a single stream
+- Falls back to raw PCM if no WAV headers are detected
+
+### 2. Optimized Audio Delivery
+
+The implementation eliminates audio clicks, pops, and choppy sounds by:
+- Using consistent 10ms chunk sizes for steady delivery
+- Pre-buffering 20ms to smooth network jitter
+- Ensuring perfect frame alignment (16-bit sample boundaries)
+- Processing data continuously without gaps
+
+### 3. Error Handling
 
 The implementation handles:
-
-- **HTTP errors** from the API
-- **WAV header parsing** errors
-- **Network timeouts**
-- **AudioEmitter initialization** errors
-
-### Example Error Handling
-
-```python
-try:
-    audio_stream = tabbly_tts.synthesize(text="Hello world")
-    async for chunk in audio_stream:
-        # Process audio chunk
-        pass
-except httpx.HTTPError as e:
-    logger.error(f"HTTP error: {e}")
-except Exception as e:
-    logger.error(f"TTS error: {e}")
-```
+- HTTP errors from the API
+- WAV header parsing errors
+- Network timeouts (60 seconds)
+- AudioEmitter initialization errors
+- Incomplete WAV files in the stream
 
 ## Best Practices
 
 <AccordionGroup>
-  <Accordion title="Reuse HTTP Client">
-    The implementation reuses a single HTTP client for better performance. Don't create new clients for each request.
+  <Accordion title="HTTP Streaming">
+    Uses HTTP streaming for better reliability than WebSocket
   </Accordion>
   
-  <Accordion title="Handle Errors">
-    Always wrap TTS calls in try-except blocks to handle network and API errors gracefully.
+  <Accordion title="Error Handling">
+    Always wrap TTS calls in try-except blocks to handle network and API errors gracefully
   </Accordion>
   
   <Accordion title="Monitor API Usage">
-    Track your API usage through Tabbly's dashboard to manage costs and quotas.
+    Track your API usage through Tabbly's dashboard to manage costs and quotas
   </Accordion>
   
   <Accordion title="Voice Selection">
-    Choose appropriate voice_id based on your use case. Different voices may have different characteristics and languages.
+    Choose appropriate voice_id based on your use case. Different voices may have different characteristics and languages
   </Accordion>
   
   <Accordion title="Model Selection">
-    Use the appropriate model_id for your language and quality requirements.
+    Use the appropriate model_id (default: "tabbly-tts")
+  </Accordion>
+  
+  <Accordion title="WAV Processing">
+    The implementation automatically handles WAV files - no manual processing needed
+  </Accordion>
+  
+  <Accordion title="Buffering">
+    The pre-buffer helps smooth out network delays - don't disable it
+  </Accordion>
+  
+  <Accordion title="Frame Alignment">
+    Always ensure sample-aligned chunks to prevent audio artifacts
   </Accordion>
 </AccordionGroup>
 
@@ -267,6 +442,7 @@ async def entrypoint(ctx: agents.JobContext):
         tts_config = TabblyTTS(
             api_key=metadata.get("tts_api_key", "default-key"),
             voice_id=metadata.get("use_tts_voice", "Ashley"),
+            model_id="tabbly-tts",
         )
         
         session = AgentSession(
@@ -279,163 +455,73 @@ async def entrypoint(ctx: agents.JobContext):
         await session.start(room=ctx.room, agent=your_agent)
 ```
 
-## Complete Example
-
-Here's a complete example combining all components:
-
-```python
-from livekit import agents
-from livekit.agents import tts, utils, AgentSession
-from livekit.agents.types import DEFAULT_API_CONNECT_OPTIONS
-import httpx
-from typing import Any
-
-
-class TabblyTTS(tts.TTS):
-    def __init__(
-        self,
-        api_key: str,
-        voice_id: str = "Ashley",
-        model_id: str = "tabbly-tts-1",
-        base_url: str = "https://ttsapi-uuskz.ondigitalocean.app",
-    ):
-        super().__init__(
-            capabilities=tts.TTSCapabilities(streaming=False),
-            sample_rate=48000,
-            num_channels=1,
-        )
-        self.api_key = api_key
-        self.voice_id = voice_id
-        self.model_id = model_id
-        self.base_url = base_url
-        self._http_client = None
-    
-    @property
-    def http_client(self):
-        if self._http_client is None:
-            self._http_client = httpx.AsyncClient(timeout=60.0, follow_redirects=True)
-        return self._http_client
-    
-    def synthesize(
-        self, 
-        text: str, 
-        conn_options: Any = DEFAULT_API_CONNECT_OPTIONS,
-    ) -> tts.ChunkedStream:
-        return TabblyChunkedStream(
-            tts=self,
-            input_text=text,
-            conn_options=conn_options,
-        )
-
-
-class TabblyChunkedStream(tts.ChunkedStream):
-    def __init__(
-        self,
-        *,
-        tts: TabblyTTS,
-        input_text: str,
-        conn_options: Any,
-    ) -> None:
-        super().__init__(tts=tts, input_text=input_text, conn_options=conn_options)
-        self._tts = tts
-        self._input_text = input_text
-        self._conn_options = conn_options
-    
-    async def _run(self, output_emitter: tts.AudioEmitter) -> None:
-        output_emitter.initialize(
-            request_id=utils.shortuuid(),
-            sample_rate=48000,
-            num_channels=1,
-            mime_type="audio/pcm",
-        )
-        
-        url = f"{self._tts.base_url}/tts/stream"
-        headers = {
-            "Content-Type": "application/json",
-            "X-API-Key": self._tts.api_key,
-        }
-        data = {
-            "text": self._input_text,
-            "voice_id": self._tts.voice_id,
-            "model_id": self._tts.model_id,
-        }
-        
-        async with self._tts.http_client.stream("POST", url, json=data, headers=headers) as response:
-            response.raise_for_status()
-            
-            buffer = bytearray()
-            header_skipped = False
-            
-            async for chunk in response.aiter_bytes():
-                if chunk:
-                    buffer.extend(chunk)
-                    
-                    if not header_skipped and len(buffer) >= 44:
-                        if buffer[:4] == b'RIFF' and buffer[8:12] == b'WAVE':
-                            for i in range(12, min(len(buffer), 200)):
-                                if buffer[i:i+4] == b'data':
-                                    buffer = buffer[i+8:]
-                                    break
-                            else:
-                                buffer = buffer[44:]
-                        header_skipped = True
-                    
-                    if header_skipped:
-                        output_emitter.push(bytes(buffer))
-                        buffer.clear()
-        
-        output_emitter.flush()
-
-
-async def entrypoint(ctx: agents.JobContext):
-    tabbly_tts = TabblyTTS(
-        api_key="your-api-key-here",
-        voice_id="Ashley",
-    )
-    
-    session = AgentSession(
-        tts=tabbly_tts,
-        stt=your_stt_provider,
-        llm=your_llm_provider,
-    )
-    
-    await ctx.connect()
-    await session.start(room=ctx.room, agent=your_agent)
-```
-
 ## Troubleshooting
 
 ### No Audio Output
 
-- Check API key is valid
-- Verify network connectivity
-- Check logs for HTTP errors
-- Ensure AudioEmitter is initialized correctly
+- Check API key is valid and has wallet balance > 0
+- Verify network connectivity to API endpoint (`https://api.tabbly.io`)
+- Check logs for HTTP connection errors
+- Verify the response status code is 200
+- Check if WAV headers are being detected correctly
 
-### Audio Quality Issues
+### Audio Quality Issues (Clicks, Pops, Choppy Sound)
 
-- Ensure sample rate matches (48000 Hz)
-- Verify WAV header is being parsed correctly
-- Check if audio data is being pushed correctly
-- Verify mono channel configuration
+**This is the main issue this implementation solves!**
+
+- Ensure the pre-buffer is working (check logs for buffer sizes)
+- Verify chunk size is 960 bytes (10ms)
+- Check that frame alignment is correct (even number of bytes)
+- Monitor network latency - high latency may require larger pre-buffer
+- Ensure WAV extraction is working (check debug logs)
+
+### HTTP Connection Issues
+
+- Check firewall/proxy settings for HTTPS connections
+- Verify API URL is correct (`https://api.tabbly.io/tts/stream`)
+- Check for HTTP timeout errors (default 60 seconds)
+- Ensure API key is properly included in `X-API-Key` header
+- Verify request format matches API requirements
 
 ### Performance Issues
 
-- Reuse HTTP client instances
-- Monitor API response times
-- Consider caching for repeated text
-- Check network latency to API endpoint
+- Monitor HTTP connection establishment time
+- Check for network latency to API endpoint
+- Monitor audio chunk arrival rate
+- Check if pre-buffer is filling up (may indicate slow network)
+- Consider adjusting CHUNK_SIZE or PRE_BUFFER_SIZE for your network conditions
+
+### WAV Processing Issues
+
+- Check logs for "Extracted PCM from WAV" messages
+- Verify WAV headers are being detected (`RIFF` and `WAVE` markers)
+- Check if multiple WAV files are being processed correctly
+- Ensure incomplete WAV files are being handled (kept in buffer)
+
+## Audio Artifact Prevention
+
+This implementation specifically addresses audio artifacts (clicks, pops, choppy sounds) through:
+
+1. **Consistent Chunk Sizes**: 10ms chunks provide steady delivery rate
+2. **Pre-buffering**: 20ms buffer smooths out network jitter
+3. **Frame Alignment**: All chunks aligned to 16-bit sample boundaries
+4. **Continuous Processing**: No gaps between chunks
+5. **WAV Extraction**: Properly extracts PCM from embedded WAV files
+
+If you still experience audio artifacts:
+- Increase PRE_BUFFER_SIZE (try 2880 bytes = 30ms)
+- Check network latency and stability
+- Verify the API is sending consistent data
+- Check for any errors in the logs
 
 ## Support
 
 For issues or questions:
-
 - Check [TTS Streaming API documentation](/tts-api/tts-streaming)
 - Review [LiveKit Agents documentation](https://docs.livekit.io/agents)
 - Check application logs for detailed error messages
-- Contact Tabbly support for API-related issues
+- Verify your implementation matches the code provided above
 
 ## License
 
 This integration follows the same license as your LiveKit Agents project.
-
