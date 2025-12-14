@@ -52,7 +52,7 @@ class TabblyTTS(tts.TTS):
         base_url: str = "https://api.tabbly.io",
     ):
         # Initialize TTS base class with capabilities
-        # Use ChunkedStream pattern (like Smallest AI) - even though API supports streaming,
+        # Use ChunkedStream pattern - even though API supports streaming,
         # LiveKit's ChunkedStream handles the chunking for us
         super().__init__(
             capabilities=tts.TTSCapabilities(streaming=False),
